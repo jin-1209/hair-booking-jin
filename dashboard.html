@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIN — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <div class="login-brand">JIN</div>
+      <h2 class="login-title">Staff Login</h2>
+      <p class="login-subtitle">PINコードを入力してください</p>
+      <div class="pin-inputs" id="pinInputs">
+        <input type="password" maxlength="1" class="pin-digit" data-index="0" inputmode="numeric" autocomplete="off">
+        <input type="password" maxlength="1" class="pin-digit" data-index="1" inputmode="numeric" autocomplete="off">
+        <input type="password" maxlength="1" class="pin-digit" data-index="2" inputmode="numeric" autocomplete="off">
+        <input type="password" maxlength="1" class="pin-digit" data-index="3" inputmode="numeric" autocomplete="off">
+      </div>
+      <p class="login-error" id="loginError"></p>
+      <p class="login-hint">デモ用PIN: 0000</p>
+      <a href="index.html" class="login-back">← 予約サイトへ戻る</a>
+    </div>
+  </div>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">JIN</div>
+      <span class="sidebar-title">Dashboard</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>概要</span>
+      </a>
+      <a href="#" class="nav-item" data-section="bookings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>予約管理</span>
+      </a>
+      <a href="#" class="nav-item" data-section="schedule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <span>本日のスケジュール</span>
+      </a>
+      <a href="#" class="nav-item" data-section="clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>顧客管理</span>
+      </a>
+      <a href="#" class="nav-item" data-section="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>売上分析</span>
+      </a>
+      <a href="#" class="nav-item" data-section="sitemanage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>サイト管理</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="index.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10,17 15,12 10,7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>予約サイトへ</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header" id="mobileHeader">
+    <button class="menu-btn" id="menuBtn" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-brand">JIN Dashboard</span>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main" id="mainContent">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="pageTitle">概要</h1>
+        <span class="page-date" id="pageDate"></span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar">
+          <img src="stylist.jpg" alt="JIN">
+          <span>JIN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview Section -->
+    <section class="section active" id="sectionOverview">
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-bookings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">本日の予約</span>
+            <span class="kpi-value" id="kpiTodayBookings">6</span>
+          </div>
+          <span class="kpi-trend up">+2 昨日比</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-revenue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">今月の売上</span>
+            <span class="kpi-value">¥487,200</span>
+          </div>
+          <span class="kpi-trend up">+12.3%</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-clients">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">新規顧客（今月）</span>
+            <span class="kpi-value">18</span>
+          </div>
+          <span class="kpi-trend up">+5</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-rate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">リピート率</span>
+            <span class="kpi-value">74%</span>
+          </div>
+          <span class="kpi-trend up">+3%</span>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card chart-large">
+          <div class="chart-header">
+            <h3>月別売上推移</h3>
+            <div class="chart-tabs">
+              <button class="chart-tab active">6ヶ月</button>
+              <button class="chart-tab">1年</button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card chart-small">
+          <div class="chart-header">
+            <h3>メニュー別比率</h3>
+          </div>
+          <div class="chart-body chart-body-donut">
+            <canvas id="menuChart"></canvas>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Timeline + Recent -->
+      <div class="bottom-row">
+        <div class="card timeline-card">
+          <div class="card-header">
+            <h3>本日のスケジュール</h3>
+            <span class="badge" id="todayCount">6件</span>
+          </div>
+          <div class="timeline" id="overviewTimeline">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+        <div class="card recent-card">
+          <div class="card-header">
+            <h3>最近の予約</h3>
+          </div>
+          <div class="recent-list" id="recentBookings">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bookings Section -->
+    <section class="section" id="sectionBookings">
+      <div class="section-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="bookingSearch" placeholder="予約を検索...">
+        </div>
+        <div class="filter-group">
+          <select id="bookingFilter" class="filter-select">
+            <option value="all">すべて</option>
+            <option value="confirmed">確定</option>
+            <option value="pending">保留中</option>
+            <option value="completed">完了</option>
+            <option value="cancelled">キャンセル</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="data-table" id="bookingsTable">
+          <thead>
+            <tr>
+              <th>予約ID</th>
+              <th>お客様</th>
+              <th>メニュー</th>
+              <th>日時</th>
+              <th>料金</th>
+              <th>ステータス</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Schedule Section -->
+    <section class="section" id="sectionSchedule">
+      <div class="schedule-header">
+        <button class="sch-nav" id="schPrev">‹</button>
+        <h3 class="sch-date" id="schDate"></h3>
+        <button class="sch-nav" id="schNext">›</button>
+      </div>
+      <div class="schedule-grid" id="scheduleGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Clients Section -->
+    <section class="section" id="sectionClients">
+      <div class="section-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="clientSearch" placeholder="顧客を検索...">
+        </div>
+      </div>
+      <div class="clients-grid" id="clientsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section class="section" id="sectionAnalytics">
+      <div class="analytics-grid">
+        <div class="chart-card">
+          <div class="chart-header"><h3>曜日別予約数</h3></div>
+          <div class="chart-body"><canvas id="weekdayChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><h3>時間帯別予約数</h3></div>
+          <div class="chart-body"><canvas id="hourChart"></canvas></div>
+        </div>
+        <div class="chart-card analytics-full">
+          <div class="chart-header"><h3>月別新規 vs リピーター</h3></div>
+          <div class="chart-body"><canvas id="clientTypeChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Site Management Section -->
+    <section class="section" id="sectionSitemanage">
+
+      <!-- Photo Management -->
+      <div class="card mgmt-card">
+        <div class="card-header">
+          <h3>プロフィール写真</h3>
+        </div>
+        <div class="photo-mgmt">
+          <div class="photo-preview" id="photoPreview">
+            <img src="stylist.jpg" alt="現在の写真" id="currentPhoto">
+          </div>
+          <div class="photo-actions">
+            <label class="upload-btn" for="photoUpload">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              写真をアップロード
+            </label>
+            <input type="file" id="photoUpload" accept="image/*" hidden>
+            <button class="reset-photo-btn" id="resetPhotoBtn">デフォルトに戻す</button>
+            <p class="photo-hint">推奨: 800×1000px以上の縦長写真。変更は予約サイトに即反映されます。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stylist / Site Info Management -->
+      <div class="card mgmt-card">
+        <div class="card-header">
+          <h3>スタイリスト・サロン情報</h3>
+        </div>
+        <form id="siteInfoForm" class="site-info-form">
+          <div class="form-section-label">スタイリスト情報</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>スタイリスト名</label>
+              <input type="text" id="editStylistName" placeholder="JIN">
+            </div>
+            <div class="form-group">
+              <label>サロン名 / 肩書き</label>
+              <input type="text" id="editSalonName" placeholder="Beauty Stylist at TOKI+LIM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>自己紹介文</label>
+            <textarea id="editStylistBio" rows="3" placeholder="プロフィールの紹介文を入力してください"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Instagram URL</label>
+            <input type="url" id="editInstagram" placeholder="https://instagram.com/username">
+          </div>
+
+          <div class="form-section-label" style="margin-top:20px;">ヒーローセクション統計</div>
+          <div class="form-row form-row-3">
+            <div class="form-group">
+              <label>経験年数</label>
+              <input type="text" id="editYearsExp" placeholder="10">
+            </div>
+            <div class="form-group">
+              <label>施術実績数</label>
+              <input type="text" id="editClientsServed" placeholder="3,000">
+            </div>
+            <div class="form-group">
+              <label>評価</label>
+              <input type="text" id="editRating" placeholder="4.9">
+            </div>
+          </div>
+
+          <div class="form-section-label" style="margin-top:20px;">サロン情報</div>
+          <div class="form-group">
+            <label>住所</label>
+            <textarea id="editAddress" rows="2" placeholder="328 North Bridge Road #02-33&#10;Raffles Hotel Arcade&#10;Singapore 188719"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>営業時間</label>
+              <input type="text" id="editBusinessHours" placeholder="10:00 〜 20:00（最終受付 19:00）">
+            </div>
+            <div class="form-group">
+              <label>定休日</label>
+              <input type="text" id="editClosedDay" placeholder="定休日：毎週火曜日">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>電話番号</label>
+              <input type="tel" id="editPhone" placeholder="+65 6259 3200">
+            </div>
+            <div class="form-group">
+              <label>メールアドレス</label>
+              <input type="email" id="editEmail" placeholder="info@tokilim.com">
+            </div>
+          </div>
+
+          <div class="modal-actions" style="padding-top:16px;">
+            <button type="button" class="btn-cancel" id="resetSiteInfoBtn">リセット</button>
+            <button type="submit" class="btn-save">サイト情報を保存</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Menu Management -->
+      <div class="card mgmt-card">
+        <div class="card-header">
+          <h3>メニュー管理</h3>
+          <button class="add-menu-btn" id="addMenuBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新規追加
+          </button>
+        </div>
+        <div class="menu-mgmt-list" id="menuMgmtList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Menu Edit Modal -->
+      <div class="modal-overlay" id="menuModal">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3 id="modalTitle">メニュー編集</h3>
+            <button class="modal-close" id="modalClose">×</button>
+          </div>
+          <form id="menuForm" class="modal-body">
+            <input type="hidden" id="editMenuId">
+            <div class="form-row">
+              <div class="form-group">
+                <label>メニュー名（日本語）</label>
+                <input type="text" id="editNameJa" required>
+              </div>
+              <div class="form-group">
+                <label>メニュー名（English）</label>
+                <input type="text" id="editNameEn" required>
+              </div>
+              <div class="form-group">
+                <label>メニュー名（中文）</label>
+                <input type="text" id="editNameZh" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>価格（数値）</label>
+                <input type="number" id="editPrice" required min="0">
+              </div>
+              <div class="form-group">
+                <label>所要時間（分）</label>
+                <input type="number" id="editTime" required min="0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>説明（日本語）</label>
+              <textarea id="editDescJa" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label>説明（English）</label>
+              <textarea id="editDescEn" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label>説明（中文）</label>
+              <textarea id="editDescZh" rows="2"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" id="modalCancelBtn">キャンセル</button>
+              <button type="submit" class="btn-save">保存</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIN — Beauty Stylist | Singapore 予約サイト</title>
+  <meta name="description" content="シンガポールTOKI+LIMのスタイリストJINの予約サイト。ヘア・ネイル・エステ・マツエクなど、マンツーマンで最高の施術をご提供します。">
+  <meta property="og:title" content="JIN — Beauty Stylist at TOKI+LIM">
+  <meta property="og:description" content="マンツーマン施術の予約サイト。ヘア・ネイル・エステ・マツエク対応。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ==================== Header / Navigation ==================== -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-text">JIN</span>
+      </a>
+      <nav class="main-nav" id="mainNav">
+        <a href="#top" class="nav-link active" data-i18n="nav_top">トップ</a>
+        <a href="#stylist" class="nav-link" data-i18n="nav_stylist">スタイリスト</a>
+        <a href="#menu" class="nav-link" data-i18n="nav_menu">メニュー</a>
+        <a href="#booking" class="nav-link" data-i18n="nav_booking">予約</a>
+        <a href="#access" class="nav-link" data-i18n="nav_access">アクセス</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher" id="langSwitcher">
+          <button class="lang-btn" id="langToggle" aria-label="言語切替">
+            <span class="lang-flag" id="langFlag">🇯🇵</span>
+            <span class="lang-code" id="langCode">JP</span>
+            <svg class="lang-chevron" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-option active" data-lang="ja">
+              <span class="lang-flag">🇯🇵</span><span>日本語</span>
+            </button>
+            <button class="lang-option" data-lang="en">
+              <span class="lang-flag">🇺🇸</span><span>English</span>
+            </button>
+            <button class="lang-option" data-lang="zh">
+              <span class="lang-flag">🇨🇳</span><span>中文</span>
+            </button>
+          </div>
+        </div>
+        <a href="#booking" class="header-cta" data-i18n="header_cta">予約する</a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="メニューを開く">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== Hero ==================== -->
+  <section class="hero" id="top">
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge animate-in" data-i18n="hero_badge">完全予約制 · マンツーマン施術</div>
+        <h1 class="hero-title animate-in">
+          <span class="hero-title-line" data-i18n="hero_title_1">あなただけの</span>
+          <span class="hero-title-line hero-title-accent" data-i18n="hero_title_2">美しさを、引き出す。</span>
+        </h1>
+        <p class="hero-desc animate-in" data-i18n="hero_desc">ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。</p>
+        <div class="hero-buttons animate-in">
+          <a href="#booking" class="btn btn-accent" data-i18n="hero_cta">今すぐ予約</a>
+          <a href="#menu" class="btn btn-ghost" data-i18n="hero_menu">メニューを見る</a>
+        </div>
+        <div class="hero-trust animate-in">
+          <div class="trust-item">
+            <span class="trust-num">10+</span>
+            <span class="trust-label" data-i18n="trust_exp">年の経験</span>
+          </div>
+          <div class="trust-divider"></div>
+          <div class="trust-item">
+            <span class="trust-num">3,000+</span>
+            <span class="trust-label" data-i18n="trust_clients">施術実績</span>
+          </div>
+          <div class="trust-divider"></div>
+          <div class="trust-item">
+            <span class="trust-num">4.9</span>
+            <span class="trust-label" data-i18n="trust_rating">★ 評価</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual animate-in">
+        <div class="hero-img-wrapper">
+          <img src="stylist.jpg" alt="JIN - Stylist" id="heroImg">
+          <div class="hero-img-overlay"></div>
+        </div>
+        <div class="hero-floating-card">
+          <div class="floating-icon">✨</div>
+          <div>
+            <div class="floating-title" data-i18n="floating_title">次の空き枠</div>
+            <div class="floating-time" id="nextSlot">本日 14:00〜</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- ==================== Stylist Section ==================== -->
+  <section class="section stylist-section" id="stylist">
+    <div class="container">
+      <div class="section-badge animate-in" data-i18n="stylist_badge">About</div>
+      <h2 class="section-title animate-in" data-i18n="stylist_title">スタイリスト紹介</h2>
+      <div class="stylist-card animate-in">
+        <div class="stylist-photo">
+          <img src="stylist.jpg" alt="JIN" id="stylistImg">
+        </div>
+        <div class="stylist-info">
+          <h3 class="stylist-name">JIN</h3>
+          <p class="stylist-role" data-i18n="stylist_role">Beauty Stylist at TOKI+LIM</p>
+          <p class="stylist-bio" data-i18n="stylist_bio">東京都内の有名サロンで経験を積み、数々のヘアコンテストで入賞。お客様一人ひとりの骨格・髪質・ライフスタイルに合わせた、再現性の高いスタイルをご提案いたします。マンツーマンでの施術にこだわり、最高のリラックス空間を提供します。</p>
+          <div class="stylist-tags">
+            <span class="tag" data-i18n="tag_hair">ヘアスタイリング</span>
+            <span class="tag" data-i18n="tag_color">カラーリング</span>
+            <span class="tag" data-i18n="tag_treatment">トリートメント</span>
+            <span class="tag" data-i18n="tag_consultation">骨格診断</span>
+          </div>
+          <div class="stylist-socials">
+            <a href="https://instagram.com/jinstaglam.hair" target="_blank" class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="LINE">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Menu Section ==================== -->
+  <section class="section menu-section" id="menu">
+    <div class="container">
+      <div class="section-badge animate-in" data-i18n="menu_badge">Menu</div>
+      <h2 class="section-title animate-in" data-i18n="menu_title">施術メニュー</h2>
+      <p class="section-subtitle animate-in" data-i18n="menu_subtitle">すべてマンツーマンの施術です。お一人おひとりに合わせた最適なメニューをご提案します。</p>
+      <div class="menu-grid" id="menuGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Booking Section ==================== -->
+  <section class="section booking-section" id="booking">
+    <div class="container">
+      <div class="section-badge animate-in" data-i18n="booking_badge">Booking</div>
+      <h2 class="section-title animate-in" data-i18n="booking_title">ご予約</h2>
+      <p class="section-subtitle animate-in" data-i18n="booking_subtitle">3ステップで簡単予約。お好みのメニューと日時をお選びください。</p>
+
+      <div class="booking-container">
+        <!-- Progress Steps -->
+        <div class="progress-bar animate-in">
+          <div class="progress-step active" data-step="1">
+            <div class="step-circle">1</div>
+            <span data-i18n="step1_label">メニュー選択</span>
+          </div>
+          <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-step" data-step="2">
+            <div class="step-circle">2</div>
+            <span data-i18n="step2_label">日時選択</span>
+          </div>
+          <div class="progress-line"><div class="progress-fill"></div></div>
+          <div class="progress-step" data-step="3">
+            <div class="step-circle">3</div>
+            <span data-i18n="step3_label">お客様情報</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Menu Selection -->
+        <div class="booking-panel active" id="bookingStep1">
+          <h3 class="panel-heading" data-i18n="panel1_title">メニューをお選びください</h3>
+          <div class="booking-menu-list" id="bookingMenuList">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">次へ進む →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Date & Time -->
+        <div class="booking-panel" id="bookingStep2">
+          <h3 class="panel-heading" data-i18n="panel2_title">日時をお選びください</h3>
+          <div class="calendar-card">
+            <div class="calendar-nav">
+              <button class="cal-arrow" id="calPrev" aria-label="前の月">‹</button>
+              <span class="cal-month-label" id="calMonth"></span>
+              <button class="cal-arrow" id="calNext" aria-label="次の月">›</button>
+            </div>
+            <div class="calendar-weekdays" id="calendarWeekdays">
+              <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+          <div class="time-slots-area" id="timeSlotsContainer" style="display:none;">
+            <h4 class="time-heading" data-i18n="time_select">時間帯を選択</h4>
+            <div class="time-slots-grid" id="timeSlots"></div>
+          </div>
+          <div class="panel-actions panel-actions-split">
+            <button class="btn btn-outline-subtle" id="backToStep1" data-i18n="btn_back">← 戻る</button>
+            <button class="btn btn-accent btn-lg" id="toStep3" disabled data-i18n="btn_next">次へ進む →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Customer Info -->
+        <div class="booking-panel" id="bookingStep3">
+          <h3 class="panel-heading" data-i18n="panel3_title">お客様情報をご入力ください</h3>
+          <form class="booking-form" id="bookingForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="customerName" data-i18n="label_name" data-i18n-html="true">お名前 <span class="req">*</span></label>
+                <input type="text" id="customerName" data-i18n-placeholder="placeholder_name" placeholder="田中 花子" required>
+              </div>
+              <div class="form-group">
+                <label for="customerPhone" data-i18n="label_phone" data-i18n-html="true">電話番号 <span class="req">*</span></label>
+                <input type="tel" id="customerPhone" data-i18n-placeholder="placeholder_phone" placeholder="090-1234-5678" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="customerEmail" data-i18n="label_email">メールアドレス</label>
+              <input type="email" id="customerEmail" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+              <label for="customerNote" data-i18n="label_note">ご要望・メッセージ</label>
+              <textarea id="customerNote" rows="3" data-i18n-placeholder="placeholder_note" placeholder="ご要望がありましたらお書きください"></textarea>
+            </div>
+            <!-- Summary Card -->
+            <div class="summary-card" id="bookingSummary"></div>
+            <div class="panel-actions panel-actions-split">
+              <button type="button" class="btn btn-outline-subtle" id="backToStep2" data-i18n="btn_back">← 戻る</button>
+              <button type="submit" class="btn btn-accent btn-lg" data-i18n="btn_submit">予約を確定する ✓</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Confirmation Modal ==================== -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+      <div class="modal-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h3 class="modal-heading" data-i18n="modal_title">ご予約ありがとうございます</h3>
+      <p class="modal-body" id="modalText"></p>
+      <button class="btn btn-accent btn-lg btn-full" id="modalClose" data-i18n="modal_close">閉じる</button>
+    </div>
+  </div>
+
+  <!-- ==================== Access Section ==================== -->
+  <section class="section access-section" id="access">
+    <div class="container">
+      <div class="section-badge animate-in" data-i18n="access_badge">Access</div>
+      <h2 class="section-title animate-in" data-i18n="access_title">サロン情報</h2>
+      <div class="access-layout">
+        <div class="access-details animate-in">
+          <div class="detail-item">
+            <div class="detail-icon">📍</div>
+            <div>
+              <h4 data-i18n="info_address">住所</h4>
+              <p data-i18n="info_address_value" data-i18n-html="true">328 North Bridge Road #02-33<br>Raffles Hotel Arcade<br>Singapore 188719</p>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">🕐</div>
+            <div>
+              <h4 data-i18n="info_hours">営業時間</h4>
+              <p data-i18n="info_hours_value">10:00 〜 20:00（最終受付 19:00）</p>
+              <p class="detail-sub" data-i18n="info_closed">定休日：毎週火曜日</p>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">📞</div>
+            <div>
+              <h4 data-i18n="info_phone">電話番号</h4>
+              <p>+65 6259 3200</p>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">✉️</div>
+            <div>
+              <h4 data-i18n="info_email">メール</h4>
+              <p>info@tokilim.com</p>
+            </div>
+          </div>
+        </div>
+        <div class="access-map animate-in">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.798!2d103.8536!3d1.2948!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da19a7a3e0b3d1%3A0x8f05b2e2a7e3b8a0!2sRaffles%20Hotel%20Arcade!5e0!3m2!1sen!2ssg!4v1710000000000!5m2!1sen!2ssg"
+            width="100%" height="100%" style="border:0;"
+            allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Footer ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span>JIN at TOKI+LIM</span>
+        </div>
+        <p class="footer-copy">&copy; 2026 JIN at TOKI+LIM. All rights reserved.</p>
+        <a href="dashboard.html" class="admin-link" title="スタッフログイン">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
