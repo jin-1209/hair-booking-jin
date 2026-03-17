@@ -253,7 +253,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'cut-color',
     name: { ja: 'カット + カラー', en: 'Cut + Color', zh: '剪发 + 染发' },
-    price: '$120', priceNum: 120,
+    price: '$120〜', priceNum: 120,
     desc: {
       ja: 'カットとカラーのセットメニュー。トレンドからナチュラルまで。',
       en: 'A set menu of cut and color. Trendy to natural shades.',
@@ -265,7 +265,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'color',
     name: { ja: 'カラー', en: 'Color', zh: '染发' },
-    price: '$80', priceNum: 80,
+    price: '$100〜', priceNum: 100,
     desc: {
       ja: 'イルミナカラー等、ダメージレスな薬剤を使用。',
       en: 'Low-damage formulas like Illumina Color.',
