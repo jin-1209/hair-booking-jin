@@ -81,6 +81,9 @@ const TRANSLATIONS = {
     months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
     date_format: (y, m, d) => `${y}年${m}月${d}日`,
     cal_format: (y, m) => `${y}年 ${TRANSLATIONS.ja.months[m]}`,
+    reviews_badge: 'Reviews',
+    reviews_title: 'お客様の声',
+    reviews_subtitle: 'ご来店いただいたお客様からの口コミをご紹介します。',
   },
 
   en: {
@@ -156,6 +159,9 @@ const TRANSLATIONS = {
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     date_format: (y, m, d) => `${TRANSLATIONS.en.months[m - 1]} ${d}, ${y}`,
     cal_format: (y, m) => `${TRANSLATIONS.en.months[m]} ${y}`,
+    reviews_badge: 'Reviews',
+    reviews_title: 'Customer Reviews',
+    reviews_subtitle: 'Hear what our clients have to say about their experience.',
   },
 
   zh: {
@@ -231,8 +237,65 @@ const TRANSLATIONS = {
     months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
     date_format: (y, m, d) => `${y}年${m}月${d}日`,
     cal_format: (y, m) => `${y}年 ${TRANSLATIONS.zh.months[m]}`,
+    reviews_badge: 'Reviews',
+    reviews_title: '客户评价',
+    reviews_subtitle: '来自客户的真实评价。',
   }
 };
+
+// ==========================================
+// Reviews data
+// ==========================================
+const DEFAULT_REVIEWS = [
+  {
+    id: 'r1',
+    name: 'Y.T',
+    rating: 5,
+    date: '2026/03/10',
+    text: '初めて伺いましたが、丁寧なカウンセリングで理想のスタイルになりました。カラーも透明感があってとても気に入っています！',
+    menu: 'カット + カラー'
+  },
+  {
+    id: 'r2',
+    name: 'M.S',
+    rating: 5,
+    date: '2026/03/05',
+    text: '毎回安心してお任せできます。髪質に合わせたトリートメントで、仵まとまりも良くなりました。',
+    menu: 'トリートメント'
+  },
+  {
+    id: 'r3',
+    name: 'A.K',
+    rating: 5,
+    date: '2026/02/28',
+    text: 'マンツーマンでゆったり施術してもらえるのが嵌しいです。パーマの仵ちも自然でとても満足です！',
+    menu: 'パーマ'
+  },
+  {
+    id: 'r4',
+    name: 'K.H',
+    rating: 5,
+    date: '2026/02/20',
+    text: 'シンガポールで日本人の美容師さんに出会えて嵌しいです。細かい要望もしっかり聞いてくれます。',
+    menu: 'カット'
+  },
+  {
+    id: 'r5',
+    name: 'S.N',
+    rating: 5,
+    date: '2026/02/15',
+    text: 'ヘッドスパが最高でした！頭が軽くなって、リラックスできました。またお願いしたいです。',
+    menu: 'ヘッドスパ'
+  },
+  {
+    id: 'r6',
+    name: 'R.M',
+    rating: 5,
+    date: '2026/02/10',
+    text: 'イルミナカラーで透明感のある仕上がりに。ダメージも少なく、大満足です！',
+    menu: 'カラー'
+  }
+];
 
 // ==========================================
 // Menu data — Hair stylist only
@@ -384,6 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguageSwitcher();
   initScrollAnimations();
   initMenuSection();
+  initReviews();
   initBooking();
   initCalendar();
   initModal();
@@ -469,16 +533,6 @@ function applySiteData() {
   if (data.yearsExp) {
     const nums = document.querySelectorAll('.trust-num');
     if (nums[0]) nums[0].textContent = data.yearsExp + '+';
-  }
-
-  if (data.clientsServed) {
-    const nums = document.querySelectorAll('.trust-num');
-    if (nums[1]) nums[1].textContent = data.clientsServed + '+';
-  }
-
-  if (data.rating) {
-    const nums = document.querySelectorAll('.trust-num');
-    if (nums[2]) nums[2].textContent = data.rating;
   }
 
   // Apply Instagram link
@@ -1030,4 +1084,66 @@ function updateNextSlot() {
   } else {
     el.textContent = isToday ? `本日 ${nextTime}〜` : `明日 10:00〜`;
   }
+}
+
+// ==========================================
+// Reviews
+// ==========================================
+function getReviews() {
+  const stored = localStorage.getItem('salonReviews');
+  if (stored) {
+    try { return JSON.parse(stored); } catch(e) {}
+  }
+  return DEFAULT_REVIEWS;
+}
+
+function saveReviews(reviews) {
+  localStorage.setItem('salonReviews', JSON.stringify(reviews));
+}
+
+function initReviews() {
+  renderReviews();
+}
+
+function renderReviews() {
+  const grid = document.getElementById('reviewsGrid');
+  if (!grid) return;
+
+  const reviews = getReviews();
+  if (!reviews.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);">まだ口コミはありません。</p>';
+    return;
+  }
+
+  // Calculate average
+  const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  const avgNum = document.getElementById('reviewsAvgNum');
+  const avgStars = document.getElementById('reviewsAvgStars');
+  const avgCount = document.getElementById('reviewsAvgCount');
+  
+  if (avgNum) avgNum.textContent = avg.toFixed(1);
+  if (avgStars) avgStars.textContent = renderStarText(avg);
+  if (avgCount) avgCount.textContent = `${reviews.length}件の口コミ`;
+
+  grid.innerHTML = reviews.map((review, i) => `
+    <div class="review-card" style="animation: reviewFadeIn 0.5s ease-out ${i * 0.1}s both;">
+      <div class="review-header">
+        <div class="review-avatar">${review.name.charAt(0)}</div>
+        <div class="review-meta">
+          <div class="review-name">${review.name}</div>
+          <div class="review-date">${review.date}</div>
+        </div>
+      </div>
+      <div class="review-stars">${renderStarText(review.rating)}</div>
+      <p class="review-text">${review.text}</p>
+      ${review.menu ? `<span class="review-menu">${review.menu}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderStarText(rating) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5 ? 1 : 0;
+  const empty = 5 - full - half;
+  return '★'.repeat(full) + (half ? '★' : '') + '☆'.repeat(empty);
 }
