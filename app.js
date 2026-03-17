@@ -84,6 +84,25 @@ const TRANSLATIONS = {
     reviews_badge: 'Reviews',
     reviews_title: 'お客様の声',
     reviews_subtitle: 'ご来店いただいたお客様からの口コミをご紹介します。',
+    label_promo: '紹介コード / プロモコード',
+    placeholder_promo: 'コードを入力 (任意)',
+    referral_badge: 'Referral',
+    referral_title: 'お友達紹介プログラム',
+    referral_subtitle: 'お友達を紹介してください。ご紹介者もお友達も特典があります。',
+    ref_step1_title: 'コードをシェア',
+    ref_step1_desc: '下の紹介リンクをお友達に送るだけ。',
+    ref_step2_title: 'お友達が予約',
+    ref_step2_desc: 'お友達が紹介コードを使って予約。',
+    ref_step3_title: '特典をGET',
+    ref_step3_desc: 'お二人とも次回の施術がお得に。',
+    ref_share_label: 'あなたの紹介リンク',
+    ref_copy: 'コピー',
+    cal_badge: 'Schedule',
+    cal_title: '予約状況カレンダー',
+    cal_subtitle: '空き状況を確認して、お好きな日に予約できます。',
+    cal_available: '予約可能',
+    cal_holiday: '定休日',
+    cal_past: '過去',
   },
 
   en: {
@@ -162,6 +181,25 @@ const TRANSLATIONS = {
     reviews_badge: 'Reviews',
     reviews_title: 'Customer Reviews',
     reviews_subtitle: 'Hear what our clients have to say about their experience.',
+    label_promo: 'Referral / Promo Code',
+    placeholder_promo: 'Enter code (optional)',
+    referral_badge: 'Referral',
+    referral_title: 'Refer a Friend',
+    referral_subtitle: 'Share with friends. Both you and your friend receive benefits.',
+    ref_step1_title: 'Share the Code',
+    ref_step1_desc: 'Just send the referral link below to your friend.',
+    ref_step2_title: 'Friend Books',
+    ref_step2_desc: 'Your friend books using the referral code.',
+    ref_step3_title: 'Get Rewards',
+    ref_step3_desc: 'Both of you get a discount on your next visit.',
+    ref_share_label: 'Your Referral Link',
+    ref_copy: 'Copy',
+    cal_badge: 'Schedule',
+    cal_title: 'Booking Calendar',
+    cal_subtitle: 'Check availability and book your preferred date.',
+    cal_available: 'Available',
+    cal_holiday: 'Closed',
+    cal_past: 'Past',
   },
 
   zh: {
@@ -240,6 +278,25 @@ const TRANSLATIONS = {
     reviews_badge: 'Reviews',
     reviews_title: '客户评价',
     reviews_subtitle: '来自客户的真实评价。',
+    label_promo: '推荐码 / 优惠码',
+    placeholder_promo: '输入代码 (可选)',
+    referral_badge: 'Referral',
+    referral_title: '朋友推荐计划',
+    referral_subtitle: '推荐朋友，双方均可享受优惠。',
+    ref_step1_title: '分享代码',
+    ref_step1_desc: '将下方的推荐链接发送给朋友。',
+    ref_step2_title: '朋友预约',
+    ref_step2_desc: '朋友使用推荐码进行预约。',
+    ref_step3_title: '获得奖励',
+    ref_step3_desc: '双方均可享受下次施术优惠。',
+    ref_share_label: '您的推荐链接',
+    ref_copy: '复制',
+    cal_badge: 'Schedule',
+    cal_title: '预约日历',
+    cal_subtitle: '查看可用时间并预约。',
+    cal_available: '可预约',
+    cal_holiday: '休息日',
+    cal_past: '已过',
   }
 };
 
@@ -451,6 +508,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initBooking();
   initCalendar();
   initModal();
+  initReferral();
+  initQuickCalendar();
   updateNextSlot();
   initActiveNavTracking();
 });
@@ -1146,4 +1205,200 @@ function renderStarText(rating) {
   const half = rating % 1 >= 0.5 ? 1 : 0;
   const empty = 5 - full - half;
   return '★'.repeat(full) + (half ? '★' : '') + '☆'.repeat(empty);
+}
+
+// ==========================================
+// Referral / Promo Code
+// ==========================================
+function generateReferralCode() {
+  // Generate a random 6-char code
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'JIN-';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function getMyReferralCode() {
+  let code = localStorage.getItem('myReferralCode');
+  if (!code) {
+    code = generateReferralCode();
+    localStorage.setItem('myReferralCode', code);
+  }
+  return code;
+}
+
+function initReferral() {
+  const urlInput = document.getElementById('referralUrl');
+  const copyBtn = document.getElementById('copyReferralBtn');
+  const feedback = document.getElementById('copyFeedback');
+  const promoInput = document.getElementById('promoCode');
+
+  if (urlInput) {
+    const myCode = getMyReferralCode();
+    const baseUrl = window.location.origin + window.location.pathname;
+    urlInput.value = `${baseUrl}?ref=${myCode}`;
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      if (urlInput) {
+        navigator.clipboard.writeText(urlInput.value).then(() => {
+          if (feedback) {
+            feedback.textContent = '✅ コピーしました！お友達にシェアしてください。';
+            setTimeout(() => { feedback.textContent = ''; }, 3000);
+          }
+          copyBtn.textContent = '✅';
+          setTimeout(() => { copyBtn.textContent = t('ref_copy') || 'コピー'; }, 2000);
+        });
+      }
+    });
+  }
+
+  // Auto-fill promo code from URL parameter
+  if (promoInput) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      promoInput.value = refCode.toUpperCase();
+      const status = document.getElementById('promoStatus');
+      if (status) {
+        status.textContent = '✅ 紹介コード適用済み';
+        status.className = 'promo-status valid';
+      }
+    }
+  }
+}
+
+// ==========================================
+// Quick Calendar (Schedule overview)
+// ==========================================
+let qcalYear = new Date().getFullYear();
+let qcalMonth = new Date().getMonth();
+
+function initQuickCalendar() {
+  const grid = document.getElementById('qcalGrid');
+  if (!grid) return;
+
+  renderQuickCalendar();
+
+  document.getElementById('qcalPrev').addEventListener('click', () => {
+    qcalMonth--;
+    if (qcalMonth < 0) { qcalMonth = 11; qcalYear--; }
+    renderQuickCalendar();
+  });
+
+  document.getElementById('qcalNext').addEventListener('click', () => {
+    qcalMonth++;
+    if (qcalMonth > 11) { qcalMonth = 0; qcalYear++; }
+    renderQuickCalendar();
+  });
+}
+
+function renderQuickCalendar() {
+  const grid = document.getElementById('qcalGrid');
+  const monthEl = document.getElementById('qcalMonth');
+  const weekdaysEl = document.getElementById('qcalWeekdays');
+  if (!grid || !monthEl) return;
+
+  const lang = state.lang;
+  const weekdays = TRANSLATIONS[lang].weekdays;
+  
+  // Month label
+  if (typeof TRANSLATIONS[lang].cal_format === 'function') {
+    monthEl.textContent = TRANSLATIONS[lang].cal_format(qcalYear, qcalMonth);
+  } else {
+    monthEl.textContent = `${qcalYear}年 ${qcalMonth + 1}月`;
+  }
+
+  // Weekday headers
+  weekdaysEl.innerHTML = weekdays.map((d, i) => {
+    let cls = 'qcal-weekday';
+    if (i === 0) cls += ' sun';
+    if (i === 6) cls += ' sat';
+    return `<div class="${cls}">${d}</div>`;
+  }).join('');
+
+  // Days
+  const firstDay = new Date(qcalYear, qcalMonth, 1).getDay();
+  const daysInMonth = new Date(qcalYear, qcalMonth + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Get custom holidays from localStorage (set by dashboard)
+  let customHolidays = [];
+  try {
+    const saved = localStorage.getItem('salonHolidays');
+    if (saved) customHolidays = JSON.parse(saved);
+  } catch(e) {}
+
+  let html = '';
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div class="qcal-day empty"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(qcalYear, qcalMonth, d);
+    const dayOfWeek = date.getDay();
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+
+    // Tuesday = 2 (定休日: 毎週火曜日)
+    const isTuesday = dayOfWeek === 2;
+    
+    // Check custom holidays (format: "YYYY-MM-DD")
+    const dateStr = `${qcalYear}-${String(qcalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isCustomHoliday = customHolidays.includes(dateStr);
+    
+    const isHoliday = isTuesday || isCustomHoliday;
+
+    let cls = 'qcal-day';
+    if (isToday) cls += ' today';
+    
+    if (isPast) {
+      cls += ' past';
+    } else if (isHoliday) {
+      cls += ' holiday';
+    } else {
+      cls += ' available';
+    }
+
+    const clickHandler = (!isPast && !isHoliday)
+      ? `onclick="quickBook(${qcalYear}, ${qcalMonth}, ${d})"`
+      : '';
+
+    html += `<button class="${cls}" ${clickHandler}>${d}</button>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function quickBook(year, month, day) {
+  // Scroll to booking section and pre-select the date
+  const bookingSection = document.getElementById('booking');
+  if (bookingSection) {
+    bookingSection.scrollIntoView({ behavior: 'smooth' });
+    
+    // Set the calendar to the right month/year
+    state.calendarYear = year;
+    state.calendarMonth = month;
+    
+    // Wait for scroll, then select the date
+    setTimeout(() => {
+      renderCalendar();
+      
+      // Find and click the matching date cell
+      setTimeout(() => {
+        const cells = document.querySelectorAll('.calendar-grid .cal-day');
+        cells.forEach(cell => {
+          if (cell.textContent == day && !cell.classList.contains('disabled') && !cell.classList.contains('empty')) {
+            cell.click();
+          }
+        });
+      }, 200);
+    }, 500);
+  }
 }

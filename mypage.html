@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIN — マイページ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mypage.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="mypage-login" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">JIN</div>
+      <h2>マイページログイン</h2>
+      <p class="login-desc">ご予約時に登録された電話番号でログインしてください。</p>
+      <div class="login-form">
+        <label for="loginPhone">電話番号</label>
+        <div class="phone-input-group">
+          <select id="countryCode" class="country-select">
+            <option value="+65" data-flag="🇸🇬">🇸🇬 +65</option>
+            <option value="+81" data-flag="🇯🇵">🇯🇵 +81</option>
+            <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
+            <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
+            <option value="+86" data-flag="🇨🇳">🇨🇳 +86</option>
+            <option value="+82" data-flag="🇰🇷">🇰🇷 +82</option>
+            <option value="+886" data-flag="🇹🇼">🇹🇼 +886</option>
+            <option value="+852" data-flag="🇭🇰">🇭🇰 +852</option>
+            <option value="+61" data-flag="🇦🇺">🇦🇺 +61</option>
+            <option value="+60" data-flag="🇲🇾">🇲🇾 +60</option>
+            <option value="+66" data-flag="🇹🇭">🇹🇭 +66</option>
+            <option value="+62" data-flag="🇮🇩">🇮🇩 +62</option>
+            <option value="+63" data-flag="🇵🇭">🇵🇭 +63</option>
+            <option value="+84" data-flag="🇻🇳">🇻🇳 +84</option>
+            <option value="+91" data-flag="🇮🇳">🇮🇳 +91</option>
+            <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
+            <option value="+49" data-flag="🇩🇪">🇩🇪 +49</option>
+          </select>
+          <input type="tel" id="loginPhone" placeholder="9123-4567">
+        </div>
+        <button class="btn btn-accent btn-lg btn-full" id="loginBtn">ログイン</button>
+        <p class="login-error" id="loginError"></p>
+      </div>
+      <a href="index.html" class="login-back">← サイトに戻る</a>
+    </div>
+  </div>
+
+  <!-- My Page Content -->
+  <div class="mypage-container" id="mypageContent" style="display:none;">
+    <header class="mypage-header">
+      <a href="index.html" class="mypage-logo">JIN</a>
+      <div class="mypage-header-right">
+        <span class="mypage-user-name" id="mypageUserName"></span>
+        <button class="btn btn-outline-subtle btn-sm" id="logoutBtn">ログアウト</button>
+      </div>
+    </header>
+
+    <main class="mypage-main">
+      <!-- Points Card -->
+      <section class="points-card">
+        <div class="points-card-bg"></div>
+        <div class="points-card-content">
+          <div class="points-label">保有ポイント</div>
+          <div class="points-value" id="pointsValue">0</div>
+          <div class="points-sub">1ポイント = $1 として利用可能</div>
+        </div>
+        <div class="points-card-actions">
+          <div class="points-stat">
+            <span class="stat-num" id="totalEarned">0</span>
+            <span class="stat-label">累計獲得</span>
+          </div>
+          <div class="points-stat">
+            <span class="stat-num" id="totalUsed">0</span>
+            <span class="stat-label">累計利用</span>
+          </div>
+          <div class="points-stat">
+            <span class="stat-num" id="visitCount">0</span>
+            <span class="stat-label">来店回数</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <a href="index.html#booking" class="action-card">
+          <span class="action-icon">📅</span>
+          <span class="action-text">予約する</span>
+        </a>
+        <div class="action-card" id="usePointsBtn">
+          <span class="action-icon">🎁</span>
+          <span class="action-text">ポイントを使う</span>
+        </div>
+        <div class="action-card" id="showReferralBtn">
+          <span class="action-icon">👫</span>
+          <span class="action-text">友達を紹介</span>
+        </div>
+      </section>
+
+      <!-- Referral Card (hidden by default) -->
+      <section class="referral-mypage-card" id="referralCard" style="display:none;">
+        <h3>友達紹介コード</h3>
+        <p>以下のリンクをお友達に共有してください。お友達が予約すると、お二人にポイントが付与されます。</p>
+        <div class="referral-url-box">
+          <input type="text" id="mypageReferralUrl" readonly>
+          <button type="button" class="btn btn-accent btn-copy" id="mypageCopyBtn">コピー</button>
+        </div>
+        <p class="referral-note" id="mypageCopyFeedback"></p>
+      </section>
+
+      <!-- Use Points Modal -->
+      <div class="use-points-modal" id="usePointsModal" style="display:none;">
+        <div class="use-points-card">
+          <h3>ポイントを使う</h3>
+          <p>次回のご予約時にポイントを割引として適用できます。</p>
+          <div class="use-points-info">
+            <span>使用可能ポイント:</span>
+            <strong id="availablePoints">0</strong>
+          </div>
+          <p class="use-points-note">※ ポイントの利用は、次回来店時にスタッフにお申し付けください。<br>予約フォームのメッセージ欄に「ポイント使用希望」とご記入いただくとスムーズです。</p>
+          <button class="btn btn-accent btn-full" id="closeUsePoints">わかりました</button>
+        </div>
+      </div>
+
+      <!-- Points History -->
+      <section class="history-section">
+        <h3 class="history-title">ポイント履歴</h3>
+        <div class="history-list" id="pointsHistory">
+          <p class="history-empty">まだ履歴がありません。</p>
+        </div>
+      </section>
+
+      <!-- Booking History -->
+      <section class="history-section">
+        <h3 class="history-title">予約履歴</h3>
+        <div class="history-list" id="bookingHistory">
+          <p class="history-empty">まだ予約履歴がありません。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="mypage.js"></script>
+</body>
+</html>
