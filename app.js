@@ -241,7 +241,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'cut',
     name: { ja: 'カット', en: 'Haircut', zh: '剪发' },
-    price: '$60', priceNum: 60,
+    price: '$60〜', priceNum: 60,
     desc: {
       ja: '骨格診断に基づいた似合わせカット。再現性の高いスタイルをご提案。',
       en: 'Personalized cut based on facial structure analysis.',
@@ -277,7 +277,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'perm',
     name: { ja: 'パーマ', en: 'Perm', zh: '烫发' },
-    price: '$90', priceNum: 90,
+    price: '$90〜', priceNum: 90,
     desc: {
       ja: 'デジタルパーマで柔らかいカールを実現。',
       en: 'Soft curls with digital perm technique.',
@@ -289,7 +289,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'treatment',
     name: { ja: 'トリートメント', en: 'Treatment', zh: '护理' },
-    price: '$50', priceNum: 50,
+    price: '$50〜', priceNum: 50,
     desc: {
       ja: 'TOKIOトリートメントで髪の内部から補修。',
       en: 'TOKIO treatment repairs hair from within.',
@@ -301,7 +301,7 @@ const DEFAULT_MENU_ITEMS = [
   {
     id: 'head-spa',
     name: { ja: 'ヘッドスパ', en: 'Head Spa', zh: '头皮SPA' },
-    price: '$40', priceNum: 40,
+    price: '$40〜', priceNum: 40,
     desc: {
       ja: '頭皮の状態に合わせた本格ヘッドスパ。',
       en: 'Professional head spa customized to your scalp.',
