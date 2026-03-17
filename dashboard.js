@@ -1,142 +1,63 @@
-/* ========================================
-   Dashboard Application
-   ======================================== */
+// ==========================================
+// JIN Dashboard — Full Salon Management
+// ==========================================
 
-// ==========================================
-// Sample Data
-// ==========================================
-const CLIENTS_DATA = [
-  { id: 1, name: '佐藤 美咲', initial: '佐', since: '2024-06', visits: 24, spent: 198000, lastVisit: '2026-03-10' },
-  { id: 2, name: '鈴木 あかり', initial: '鈴', since: '2025-01', visits: 12, spent: 115200, lastVisit: '2026-03-09' },
-  { id: 3, name: '高橋 優子', initial: '高', since: '2024-03', visits: 31, spent: 285600, lastVisit: '2026-03-11' },
-  { id: 4, name: '田中 花子', initial: '田', since: '2025-06', visits: 8, spent: 72600, lastVisit: '2026-03-08' },
-  { id: 5, name: '渡辺 麻衣', initial: '渡', since: '2024-11', visits: 18, spent: 162000, lastVisit: '2026-03-07' },
-  { id: 6, name: '伊藤 さゆり', initial: '伊', since: '2025-02', visits: 10, spent: 88000, lastVisit: '2026-03-11' },
-  { id: 7, name: '山本 結衣', initial: '山', since: '2024-08', visits: 20, spent: 176000, lastVisit: '2026-03-06' },
-  { id: 8, name: '中村 真理', initial: '中', since: '2025-09', visits: 5, spent: 46200, lastVisit: '2026-03-05' },
-  { id: 9, name: '小林 舞', initial: '小', since: '2024-05', visits: 28, spent: 264000, lastVisit: '2026-03-10' },
-  { id: 10, name: '加藤 千尋', initial: '加', since: '2025-04', visits: 7, spent: 61600, lastVisit: '2026-03-04' },
-  { id: 11, name: '吉田 恵', initial: '吉', since: '2024-09', visits: 16, spent: 140800, lastVisit: '2026-03-09' },
-  { id: 12, name: '山田 亜美', initial: '山', since: '2025-07', visits: 4, spent: 35200, lastVisit: '2026-03-03' },
+'use strict';
+
+// --- Data Helpers ---
+function loadData(key, fallback) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; } catch(e) { return fallback; } }
+function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+// --- Default Data ---
+const DEFAULT_MENU_ITEMS = [
+  { id:'cut', name:{ja:'カット',en:'Haircut',zh:'剪发'}, price:'$60', priceNum:60, desc:{ja:'骨格診断に基づいた似合わせカット。',en:'Personalized cut based on facial structure.',zh:'根据面部骨骼诊断打造发型。'}, time:{ja:'約60分',en:'~60 min',zh:'约60分钟'}, timeNum:60 },
+  { id:'cut-color', name:{ja:'カット + カラー',en:'Cut + Color',zh:'剪发 + 染发'}, price:'$120', priceNum:120, desc:{ja:'カットとカラーのセットメニュー。',en:'Cut and color set menu.',zh:'剪发与染发套餐。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
+  { id:'color', name:{ja:'カラー',en:'Color',zh:'染发'}, price:'$80', priceNum:80, desc:{ja:'イルミナカラー等、ダメージレスな薬剤を使用。',en:'Low-damage formulas like Illumina Color.',zh:'使用低损伤染发剂。'}, time:{ja:'約90分',en:'~90 min',zh:'约90分钟'}, timeNum:90 },
+  { id:'perm', name:{ja:'パーマ',en:'Perm',zh:'烫发'}, price:'$90', priceNum:90, desc:{ja:'デジタルパーマで柔らかいカールを実現。',en:'Soft curls with digital perm.',zh:'数码烫打造柔软卷发。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
+  { id:'treatment', name:{ja:'トリートメント',en:'Treatment',zh:'护理'}, price:'$50', priceNum:50, desc:{ja:'TOKIOトリートメントで髪の内部から補修。',en:'TOKIO treatment repairs hair from within.',zh:'TOKIO护理从内部修复秀发。'}, time:{ja:'約45分',en:'~45 min',zh:'约45分钟'}, timeNum:45 },
+  { id:'head-spa', name:{ja:'ヘッドスパ',en:'Head Spa',zh:'头皮SPA'}, price:'$40', priceNum:40, desc:{ja:'頭皮の状態に合わせた本格ヘッドスパ。',en:'Professional head spa customized to your scalp.',zh:'根据头皮状况定制SPA。'}, time:{ja:'約40分',en:'~40 min',zh:'约40分钟'}, timeNum:40 }
 ];
 
-const TODAY_SCHEDULE = [
-  { time: '10:00', name: '佐藤 美咲', menu: 'カット + カラー', price: '¥13,200', status: 'completed' },
-  { time: '11:00', name: '高橋 優子', menu: 'カット', price: '¥6,600', status: 'completed' },
-  { time: '12:00', name: null, menu: null, price: null, status: 'empty' },
-  { time: '13:00', name: '鈴木 あかり', menu: 'パーマ', price: '¥9,900', status: 'current' },
-  { time: '14:00', name: '伊藤 さゆり', menu: 'トリートメント', price: '¥5,500', status: 'confirmed' },
-  { time: '15:00', name: null, menu: null, price: null, status: 'empty' },
-  { time: '15:30', name: '渡辺 麻衣', menu: 'カット + パーマ', price: '¥14,300', status: 'confirmed' },
-  { time: '17:00', name: null, menu: null, price: null, status: 'empty' },
-  { time: '18:00', name: '田中 花子', menu: 'カラー', price: '¥8,800', status: 'confirmed' },
-  { time: '19:00', name: null, menu: null, price: null, status: 'empty' },
+const DEMO_BOOKINGS = [
+  { id:'B001', client:'佐藤 美咲', menu:'カット + カラー', date:'2026-03-16', time:'10:00', price:120, status:'confirmed' },
+  { id:'B002', client:'田中 花子', menu:'カット', date:'2026-03-16', time:'11:30', price:60, status:'confirmed' },
+  { id:'B003', client:'鈴木 一郎', menu:'カット', date:'2026-03-16', time:'13:00', price:60, status:'completed' },
+  { id:'B004', client:'高橋 めぐみ', menu:'カラー', date:'2026-03-16', time:'14:00', price:80, status:'confirmed' },
+  { id:'B005', client:'伊藤 さくら', menu:'パーマ', date:'2026-03-16', time:'15:30', price:90, status:'pending' },
+  { id:'B006', client:'渡辺 大輔', menu:'カット + カラー', date:'2026-03-16', time:'17:00', price:120, status:'confirmed' },
+  { id:'B007', client:'山田 陽子', menu:'トリートメント', date:'2026-03-17', time:'10:00', price:50, status:'confirmed' },
+  { id:'B008', client:'中村 翔太', menu:'カット', date:'2026-03-17', time:'11:00', price:60, status:'pending' },
+  { id:'B009', client:'小林 真理', menu:'ヘッドスパ', date:'2026-03-15', time:'14:00', price:40, status:'completed' },
+  { id:'B010', client:'加藤 美紀', menu:'カット + カラー', date:'2026-03-14', time:'10:00', price:120, status:'cancelled' }
 ];
 
-const BOOKINGS_DATA = [
-  { id: 'B-0312-001', name: '佐藤 美咲', menu: 'カット + カラー', date: '2026-03-12 10:00', price: '¥13,200', status: 'completed' },
-  { id: 'B-0312-002', name: '高橋 優子', menu: 'カット', date: '2026-03-12 11:00', price: '¥6,600', status: 'completed' },
-  { id: 'B-0312-003', name: '鈴木 あかり', menu: 'パーマ', date: '2026-03-12 13:00', price: '¥9,900', status: 'confirmed' },
-  { id: 'B-0312-004', name: '伊藤 さゆり', menu: 'トリートメント', date: '2026-03-12 14:00', price: '¥5,500', status: 'confirmed' },
-  { id: 'B-0312-005', name: '渡辺 麻衣', menu: 'カット + パーマ', date: '2026-03-12 15:30', price: '¥14,300', status: 'confirmed' },
-  { id: 'B-0312-006', name: '田中 花子', menu: 'カラー', date: '2026-03-12 18:00', price: '¥8,800', status: 'pending' },
-  { id: 'B-0311-001', name: '高橋 優子', menu: 'ヘッドスパ', date: '2026-03-11 10:00', price: '¥4,400', status: 'completed' },
-  { id: 'B-0311-002', name: '山本 結衣', menu: 'カット', date: '2026-03-11 11:30', price: '¥6,600', status: 'completed' },
-  { id: 'B-0311-003', name: '小林 舞', menu: 'カット + カラー', date: '2026-03-11 13:00', price: '¥13,200', status: 'completed' },
-  { id: 'B-0311-004', name: '吉田 恵', menu: 'ハイライト', date: '2026-03-11 15:00', price: '¥11,000', status: 'completed' },
-  { id: 'B-0310-001', name: '佐藤 美咲', menu: 'トリートメント', date: '2026-03-10 10:00', price: '¥5,500', status: 'completed' },
-  { id: 'B-0310-002', name: '加藤 千尋', menu: 'カラー', date: '2026-03-10 14:00', price: '¥8,800', status: 'cancelled' },
-  { id: 'B-0313-001', name: '山田 亜美', menu: 'カット + カラー', date: '2026-03-13 10:00', price: '¥13,200', status: 'confirmed' },
-  { id: 'B-0313-002', name: '中村 真理', menu: 'パーマ', date: '2026-03-13 13:00', price: '¥9,900', status: 'pending' },
+const DEMO_CLIENTS = [
+  { id:'c1', name:'佐藤 美咲', phone:'090-1234-5678', email:'sato@example.com', since:'2024-06', designations:12, tags:'髪質:細い,カラー:暖色系', visits:[{date:'2026-03-16',menu:'カット + カラー',price:120,note:'イルミナ8/NB使用'},{date:'2026-02-10',menu:'カット',price:60,note:''},{date:'2026-01-05',menu:'カラー',price:80,note:'トーンアップ'}], notes:{hair:'細い、柔らかい、猫っ毛',chem:'イルミナカラー 8/NB、OX 3%',pref:'前髪は眉下、量は軽めが好み',other:''} },
+  { id:'c2', name:'田中 花子', phone:'090-2345-6789', email:'tanaka@example.com', since:'2025-01', designations:8, tags:'髪質:普通,パーマ好き', visits:[{date:'2026-03-16',menu:'カット',price:60,note:''},{date:'2026-02-20',menu:'パーマ',price:90,note:'デジタルパーマ'}], notes:{hair:'普通、やや硬め',chem:'',pref:'ゆるふわパーマが好み',other:''} },
+  { id:'c3', name:'鈴木 一郎', phone:'090-3456-7890', email:'', since:'2025-06', designations:5, tags:'メンズ', visits:[{date:'2026-03-16',menu:'カット',price:60,note:'ツーブロック'}], notes:{hair:'硬い、多い',chem:'',pref:'ツーブロック、サイド短め',other:''} },
+  { id:'c4', name:'高橋 めぐみ', phone:'090-4567-8901', email:'takahashi@example.com', since:'2024-12', designations:10, tags:'髪質:ダメージ,トリートメント', visits:[{date:'2026-03-16',menu:'カラー',price:80,note:''},{date:'2026-02-15',menu:'トリートメント',price:50,note:'TOKIO使用'}], notes:{hair:'ダメージあり、乾燥しやすい',chem:'TOKIO IE、OX 3%',pref:'ナチュラル系カラー',other:'頭皮が敏感'} },
+  { id:'c5', name:'伊藤 さくら', phone:'090-5678-9012', email:'ito@example.com', since:'2025-09', designations:3, tags:'新規', visits:[{date:'2026-03-16',menu:'パーマ',price:90,note:''}], notes:{hair:'',chem:'',pref:'',other:''} },
+  { id:'c6', name:'渡辺 大輔', phone:'090-6789-0123', email:'', since:'2025-03', designations:7, tags:'メンズ,カラー', visits:[{date:'2026-03-16',menu:'カット + カラー',price:120,note:'アッシュ系'},{date:'2026-01-20',menu:'カット',price:60,note:''}], notes:{hair:'普通',chem:'',pref:'アッシュ・マット系カラー好み',other:''} }
 ];
 
-const STATUS_LABELS = {
-  confirmed: '確定',
-  pending: '保留中',
-  completed: '完了',
-  cancelled: 'キャンセル',
-  current: '対応中',
-};
+const DEMO_MESSAGES = [
+  { id:'m1', type:'confirmation', to:'佐藤 美咲', content:'佐藤 美咲様、ご予約ありがとうございます。3/16 10:00にお待ちしております。', sentAt:'2026-03-14 18:30', status:'sent' },
+  { id:'m2', type:'reminder', to:'佐藤 美咲', content:'佐藤 美咲様、明日のご予約のリマインドです。10:00にお待ちしております。', sentAt:'2026-03-15 09:00', status:'sent' },
+  { id:'m3', type:'confirmation', to:'田中 花子', content:'田中 花子様、ご予約ありがとうございます。3/16 11:30にお待ちしております。', sentAt:'2026-03-15 10:00', status:'sent' },
+  { id:'m4', type:'cancellation', to:'加藤 美紀', content:'加藤 美紀様、ご予約がキャンセルされました。またのご予約をお待ちしております。', sentAt:'2026-03-13 15:00', status:'sent' },
+  { id:'m5', type:'reminder', to:'伊藤 さくら', content:'伊藤 さくら様、明日のご予約のリマインドです。15:30にお待ちしております。', sentAt:'2026-03-15 09:00', status:'sent' },
+];
 
-// ==========================================
-// State
-// ==========================================
-const dashState = {
-  currentSection: 'overview',
-  scheduleDate: new Date(),
-};
+const DEMO_COUPONS = [
+  { id:'cp1', name:'新規限定 20%OFF', type:'percent', discount:20, validFrom:'2026-03-01', validTo:'2026-04-30', conditions:'初回来店のお客様限定', isActive:true, usageCount:5 },
+  { id:'cp2', name:'平日カラー $10 OFF', type:'fixed', discount:10, validFrom:'2026-03-01', validTo:'2026-03-31', conditions:'月〜金のカラーメニュー', isActive:true, usageCount:12 },
+  { id:'cp3', name:'紹介割引 15%OFF', type:'percent', discount:15, validFrom:'2026-01-01', validTo:'2026-12-31', conditions:'既存のお客様のご紹介', isActive:true, usageCount:3 },
+];
 
-// ==========================================
-// DOM Ready
-// ==========================================
+// --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
   initLogin();
 });
-
-// ==========================================
-// Login
-// ==========================================
-const CORRECT_PIN = '0000'; // デモ用PIN
-
-function initLogin() {
-  const overlay = document.getElementById('loginOverlay');
-
-  // Already authenticated in this session
-  if (sessionStorage.getItem('dashboardAuth') === 'true') {
-    overlay.classList.add('hidden');
-    setTimeout(() => overlay.style.display = 'none', 400);
-    initDashboard();
-    return;
-  }
-
-  const digits = document.querySelectorAll('.pin-digit');
-  const errorEl = document.getElementById('loginError');
-
-  // Focus first digit
-  digits[0].focus();
-
-  digits.forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (val && idx < digits.length - 1) {
-        digits[idx + 1].focus();
-      }
-
-      // Check if all digits filled
-      const pin = Array.from(digits).map(d => d.value).join('');
-      if (pin.length === 4) {
-        if (pin === CORRECT_PIN) {
-          sessionStorage.setItem('dashboardAuth', 'true');
-          errorEl.textContent = '';
-          overlay.classList.add('hidden');
-          setTimeout(() => {
-            overlay.style.display = 'none';
-            initDashboard();
-          }, 400);
-        } else {
-          errorEl.textContent = 'PINコードが正しくありません';
-          digits.forEach(d => {
-            d.classList.add('error');
-            d.value = '';
-          });
-          digits[0].focus();
-          setTimeout(() => digits.forEach(d => d.classList.remove('error')), 600);
-        }
-      }
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !input.value && idx > 0) {
-        digits[idx - 1].focus();
-      }
-    });
-
-    // Allow only numbers
-    input.addEventListener('keypress', (e) => {
-      if (!/[0-9]/.test(e.key)) e.preventDefault();
-    });
-  });
-}
 
 function initDashboard() {
   initSidebar();
@@ -145,1017 +66,800 @@ function initDashboard() {
   renderOverviewTimeline();
   renderRecentBookings();
   renderBookingsTable();
-  renderSchedule();
   renderClients();
   initCharts();
   initSearch();
   initSiteManage();
+  initShifts();
+  initClientSection();
+  initMessages();
+  initCoupons();
+  initAnalyticsExtra();
 }
 
 // ==========================================
-// Sidebar Navigation
+// Login
+// ==========================================
+function initLogin() {
+  const overlay = document.getElementById('loginOverlay');
+  const inputs = overlay.querySelectorAll('.pin-digit');
+  const error = document.getElementById('loginError');
+
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      if (inp.value && i < 3) inputs[i + 1].focus();
+      if (i === 3 && inp.value) {
+        const pin = Array.from(inputs).map(x => x.value).join('');
+        if (pin === '0000') {
+          overlay.classList.add('hide');
+          setTimeout(() => { overlay.style.display = 'none'; initDashboard(); }, 400);
+        } else {
+          error.textContent = 'PINが正しくありません';
+          inputs.forEach(x => { x.value = ''; x.classList.add('shake'); setTimeout(() => x.classList.remove('shake'), 300); });
+          inputs[0].focus();
+        }
+      }
+    });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i - 1].focus(); });
+  });
+  inputs[0].focus();
+}
+
+// ==========================================
+// Sidebar & Navigation
 // ==========================================
 function initSidebar() {
   document.querySelectorAll('.nav-item[data-section]').forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      const section = item.dataset.section;
-      switchSection(section);
+      switchSection(item.dataset.section);
     });
   });
 }
 
 function switchSection(section) {
-  dashState.currentSection = section;
+  document.querySelectorAll('.nav-item[data-section]').forEach(n => n.classList.toggle('active', n.dataset.section === section));
+  document.querySelectorAll('.main .section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1));
+  if (target) target.classList.add('active');
 
-  // Update nav
-  document.querySelectorAll('.nav-item[data-section]').forEach(i => {
-    i.classList.toggle('active', i.dataset.section === section);
-  });
-
-  // Update section
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  const sectionEl = document.getElementById(`section${capitalize(section)}`);
-  if (sectionEl) sectionEl.classList.add('active');
-
-  // Update title
-  const titles = {
-    overview: '概要',
-    bookings: '予約管理',
-    schedule: '本日のスケジュール',
-    clients: '顧客管理',
-    analytics: '売上分析',
-    sitemanage: 'サイト管理',
-  };
+  const titles = { overview:'概要', bookings:'予約管理', shifts:'シフト管理', clients:'顧客管理', messages:'メッセージ', coupons:'クーポン', analytics:'売上分析', sitemanage:'サイト管理' };
   document.getElementById('pageTitle').textContent = titles[section] || section;
 
-  // Close mobile sidebar
+  // Close mobile menu
   document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mainContent').classList.remove('shifted');
 
-  // Redraw charts when section becomes visible
+  // Redraw charts when switching to sections with canvases
   if (section === 'analytics' || section === 'overview') {
-    requestAnimationFrame(() => {
-      if (section === 'analytics') {
-        drawWeekdayChart();
-        drawHourChart();
-        drawClientTypeChart();
-      } else {
-        drawRevenueChart();
-        drawMenuChart();
-      }
-    });
+    requestAnimationFrame(() => { setTimeout(() => initCharts(), 100); });
   }
 }
 
-function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-// ==========================================
-// Mobile
-// ==========================================
 function initMobile() {
-  const menuBtn = document.getElementById('menuBtn');
-  const sidebar = document.getElementById('sidebar');
-
-  menuBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-  });
-
-  // Close on overlay click
-  document.addEventListener('click', (e) => {
-    if (sidebar.classList.contains('open') &&
-        !sidebar.contains(e.target) &&
-        !menuBtn.contains(e.target)) {
-      sidebar.classList.remove('open');
-    }
+  const btn = document.getElementById('menuBtn');
+  if (btn) btn.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('mainContent').classList.toggle('shifted');
   });
 }
 
-// ==========================================
-// Page Date
-// ==========================================
 function setPageDate() {
-  const now = new Date();
-  const opts = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-  document.getElementById('pageDate').textContent = now.toLocaleDateString('ja-JP', opts);
+  const d = new Date();
+  const days = ['日','月','火','水','木','金','土'];
+  document.getElementById('pageDate').textContent = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日${days[d.getDay()]}曜日`;
 }
 
 // ==========================================
-// Overview Timeline
+// Overview
 // ==========================================
 function renderOverviewTimeline() {
-  const container = document.getElementById('overviewTimeline');
-  container.innerHTML = '';
-
-  TODAY_SCHEDULE.filter(s => s.status !== 'empty').forEach(item => {
-    const div = document.createElement('div');
-    div.className = `timeline-item ${item.status}`;
-    div.innerHTML = `
-      <span class="tl-time">${item.time}</span>
-      <div class="tl-content">
-        <div class="tl-name">${item.name}</div>
-        <div class="tl-menu">${item.menu} — ${item.price}</div>
-      </div>
-      <span class="tl-status status status-${item.status}">${STATUS_LABELS[item.status] || item.status}</span>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('todayCount').textContent = TODAY_SCHEDULE.filter(s => s.status !== 'empty').length + '件';
+  const c = document.getElementById('overviewTimeline');
+  if (!c) return;
+  const today = DEMO_BOOKINGS.filter(b => b.date === '2026-03-16');
+  c.innerHTML = today.map(b => `
+    <div class="tl-item">
+      <span class="tl-time">${b.time}</span>
+      <div class="tl-dot"></div>
+      <div class="tl-content"><strong>${b.client}</strong><span>${b.menu} — $${b.price}</span></div>
+    </div>`).join('');
 }
 
-// ==========================================
-// Recent Bookings
-// ==========================================
 function renderRecentBookings() {
-  const container = document.getElementById('recentBookings');
-  container.innerHTML = '';
-
-  BOOKINGS_DATA.slice(0, 6).forEach(b => {
-    const div = document.createElement('div');
-    div.className = 'recent-item';
-    div.innerHTML = `
-      <div class="recent-avatar">${b.name.charAt(0)}</div>
-      <div class="recent-info">
-        <div class="recent-name">${b.name}</div>
-        <div class="recent-detail">${b.menu} · ${b.date.split(' ')[1]}</div>
-      </div>
-      <span class="recent-price">${b.price}</span>
-    `;
-    container.appendChild(div);
-  });
+  const c = document.getElementById('recentBookings');
+  if (!c) return;
+  const statusLabels = { confirmed:'確定', pending:'保留中', completed:'完了', cancelled:'キャンセル' };
+  c.innerHTML = DEMO_BOOKINGS.slice(0, 5).map(b => `
+    <div class="recent-item">
+      <div class="recent-avatar">${b.client[0]}</div>
+      <div class="recent-info"><strong>${b.client}</strong><span>${b.menu} · ${b.date} ${b.time}</span></div>
+      <span class="status-badge st-${b.status}">${statusLabels[b.status]}</span>
+    </div>`).join('');
 }
 
 // ==========================================
 // Bookings Table
 // ==========================================
-function renderBookingsTable(filter = 'all', search = '') {
-  const tbody = document.getElementById('bookingsTableBody');
-  tbody.innerHTML = '';
-
-  let data = BOOKINGS_DATA;
-  if (filter !== 'all') data = data.filter(b => b.status === filter);
-  if (search) {
-    const q = search.toLowerCase();
-    data = data.filter(b =>
-      b.name.toLowerCase().includes(q) ||
-      b.menu.toLowerCase().includes(q) ||
-      b.id.toLowerCase().includes(q)
-    );
-  }
-
-  data.forEach(b => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="font-family:monospace;font-size:0.8rem;color:var(--color-text-muted)">${b.id}</td>
-      <td class="td-name">${b.name}</td>
+function renderBookingsTable(filter, query) {
+  const tb = document.getElementById('bookingsTableBody');
+  if (!tb) return;
+  const statusLabels = { confirmed:'確定', pending:'保留中', completed:'完了', cancelled:'キャンセル' };
+  let data = [...DEMO_BOOKINGS];
+  if (filter && filter !== 'all') data = data.filter(b => b.status === filter);
+  if (query) { const q = query.toLowerCase(); data = data.filter(b => b.client.toLowerCase().includes(q) || b.menu.toLowerCase().includes(q)); }
+  tb.innerHTML = data.map(b => `
+    <tr>
+      <td><span class="booking-id">${b.id}</span></td>
+      <td>${b.client}</td>
       <td>${b.menu}</td>
-      <td>${b.date}</td>
-      <td class="td-price">${b.price}</td>
-      <td><span class="status status-${b.status}">${STATUS_LABELS[b.status]}</span></td>
-      <td><button class="action-btn">詳細</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
+      <td>${b.date} ${b.time}</td>
+      <td>$${b.price}</td>
+      <td><span class="status-badge st-${b.status}">${statusLabels[b.status]}</span></td>
+      <td><button class="action-btn" onclick="alert('機能実装予定')">詳細</button></td>
+    </tr>`).join('');
 }
 
 function initSearch() {
-  const searchInput = document.getElementById('bookingSearch');
-  const filterSelect = document.getElementById('bookingFilter');
-
-  searchInput.addEventListener('input', () => {
-    renderBookingsTable(filterSelect.value, searchInput.value);
-  });
-
-  filterSelect.addEventListener('change', () => {
-    renderBookingsTable(filterSelect.value, searchInput.value);
-  });
-
-  // Client search
-  const clientSearch = document.getElementById('clientSearch');
-  clientSearch.addEventListener('input', () => {
-    renderClients(clientSearch.value);
-  });
+  const bs = document.getElementById('bookingSearch');
+  const bf = document.getElementById('bookingFilter');
+  if (bs) bs.addEventListener('input', () => renderBookingsTable(bf?.value, bs.value));
+  if (bf) bf.addEventListener('change', () => renderBookingsTable(bf.value, bs?.value));
 }
 
 // ==========================================
-// Schedule
+// Shifts
 // ==========================================
-function renderSchedule() {
-  const grid = document.getElementById('scheduleGrid');
-  const dateEl = document.getElementById('schDate');
+let shiftYear, shiftMonth_;
+function initShifts() {
+  const now = new Date();
+  shiftYear = now.getFullYear();
+  shiftMonth_ = now.getMonth();
+  renderShiftCalendar();
+  document.getElementById('shiftPrev')?.addEventListener('click', () => { shiftMonth_--; if (shiftMonth_ < 0) { shiftMonth_ = 11; shiftYear--; } renderShiftCalendar(); });
+  document.getElementById('shiftNext')?.addEventListener('click', () => { shiftMonth_++; if (shiftMonth_ > 11) { shiftMonth_ = 0; shiftYear++; } renderShiftCalendar(); });
 
-  const d = dashState.scheduleDate;
-  const opts = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-  dateEl.textContent = d.toLocaleDateString('ja-JP', opts);
+  // Weekday headers
+  const wk = document.getElementById('shiftWeekdays');
+  if (wk) wk.innerHTML = ['日','月','火','水','木','金','土'].map(d => `<div class="shift-wkday">${d}</div>`).join('');
 
-  grid.innerHTML = '';
-
-  const times = ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00'];
-
-  times.forEach(time => {
-    const booking = TODAY_SCHEDULE.find(s => s.time === time && s.status !== 'empty');
-    const row = document.createElement('div');
-    row.className = 'sch-row';
-    row.innerHTML = `
-      <div class="sch-time">${time}</div>
-      <div class="sch-slot">
-        ${booking ? `
-          <div class="sch-booking">
-            <div class="sch-booking-name">${booking.name}</div>
-            <div class="sch-booking-menu">${booking.menu} — ${booking.price}</div>
-          </div>
-          <span class="status status-${booking.status}">${STATUS_LABELS[booking.status]}</span>
-        ` : `<span class="sch-empty">空き</span>`}
-      </div>
-    `;
-    grid.appendChild(row);
-  });
-
-  // Nav
-  document.getElementById('schPrev').onclick = () => {
-    dashState.scheduleDate.setDate(dashState.scheduleDate.getDate() - 1);
-    renderSchedule();
-  };
-  document.getElementById('schNext').onclick = () => {
-    dashState.scheduleDate.setDate(dashState.scheduleDate.getDate() + 1);
-    renderSchedule();
-  };
+  // Hours form
+  const hf = document.getElementById('hoursForm');
+  if (hf) hf.addEventListener('submit', (e) => { e.preventDefault(); saveShiftSettings(); showToast('営業時間を保存しました'); });
+  loadShiftSettings();
 }
 
-// ==========================================
-// Clients
-// ==========================================
-function renderClients(search = '') {
-  const grid = document.getElementById('clientsGrid');
-  grid.innerHTML = '';
+function getShifts() { return loadData('salonShifts', {}); }
+function saveShifts(s) { saveData('salonShifts', s); }
 
-  let data = CLIENTS_DATA;
-  if (search) {
-    const q = search.toLowerCase();
-    data = data.filter(c => c.name.toLowerCase().includes(q));
+function getClosedDays() {
+  const settings = loadData('salonShiftSettings', { closedDays: [2] });
+  return settings.closedDays || [2];
+}
+
+function saveShiftSettings() {
+  const checks = document.querySelectorAll('#closedDays input[type=checkbox]');
+  const closedDays = [];
+  checks.forEach(c => { if (c.checked) closedDays.push(parseInt(c.value)); });
+  const settings = {
+    openTime: document.getElementById('editOpenTime')?.value || '10:00',
+    closeTime: document.getElementById('editCloseTime')?.value || '20:00',
+    lastReception: document.getElementById('editLastReception')?.value || '19:00',
+    closedDays
+  };
+  saveData('salonShiftSettings', settings);
+}
+
+function loadShiftSettings() {
+  const s = loadData('salonShiftSettings', { openTime:'10:00', closeTime:'20:00', lastReception:'19:00', closedDays:[2] });
+  const ot = document.getElementById('editOpenTime'); if (ot) ot.value = s.openTime || '10:00';
+  const ct = document.getElementById('editCloseTime'); if (ct) ct.value = s.closeTime || '20:00';
+  const lr = document.getElementById('editLastReception'); if (lr) lr.value = s.lastReception || '19:00';
+  const checks = document.querySelectorAll('#closedDays input[type=checkbox]');
+  checks.forEach(c => { c.checked = (s.closedDays || [2]).includes(parseInt(c.value)); });
+}
+
+function renderShiftCalendar() {
+  const grid = document.getElementById('shiftGrid');
+  const label = document.getElementById('shiftMonth');
+  if (!grid || !label) return;
+  label.textContent = `${shiftYear}年${shiftMonth_ + 1}月`;
+
+  const firstDay = new Date(shiftYear, shiftMonth_, 1).getDay();
+  const daysInMonth = new Date(shiftYear, shiftMonth_ + 1, 0).getDate();
+  const shifts = getShifts();
+  const closedDays = getClosedDays();
+  let html = '';
+
+  for (let i = 0; i < firstDay; i++) html += '<div class="shift-cell empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${shiftYear}-${String(shiftMonth_ + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(shiftYear, shiftMonth_, d).getDay();
+    const isClosedDay = closedDays.includes(dow);
+    const shiftData = shifts[dateStr];
+    const isOff = shiftData?.isOff || false;
+    let cls = 'shift-cell';
+    if (isClosedDay && !shiftData) cls += ' holiday';
+    else if (isOff) cls += ' off';
+    else cls += ' work';
+    const today = new Date();
+    if (d === today.getDate() && shiftMonth_ === today.getMonth() && shiftYear === today.getFullYear()) cls += ' today';
+
+    html += `<div class="${cls}" data-date="${dateStr}"><span class="shift-day">${d}</span><span class="shift-status">${isClosedDay && !shiftData ? '定休' : isOff ? '休み' : '出勤'}</span></div>`;
   }
+  grid.innerHTML = html;
 
-  data.forEach(c => {
-    const card = document.createElement('div');
-    card.className = 'client-card';
-    card.innerHTML = `
-      <div class="client-top">
-        <div class="client-avatar">${c.initial}</div>
-        <div>
-          <div class="client-name">${c.name}</div>
-          <div class="client-since">${c.since}〜</div>
-        </div>
-      </div>
-      <div class="client-stats">
-        <div class="client-stat">
-          <span class="client-stat-value">${c.visits}</span>
-          <span class="client-stat-label">来店回数</span>
-        </div>
-        <div class="client-stat">
-          <span class="client-stat-value">¥${(c.spent / 1000).toFixed(0)}k</span>
-          <span class="client-stat-label">累計金額</span>
-        </div>
-        <div class="client-stat">
-          <span class="client-stat-value">${c.lastVisit.slice(5)}</span>
-          <span class="client-stat-label">最終来店</span>
-        </div>
-      </div>
-    `;
-    grid.appendChild(card);
+  grid.querySelectorAll('.shift-cell:not(.empty)').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const date = cell.dataset.date;
+      const shifts = getShifts();
+      if (shifts[date]?.isOff) { delete shifts[date]; }
+      else { shifts[date] = { isOff: true }; }
+      saveShifts(shifts);
+      renderShiftCalendar();
+    });
   });
 }
 
 // ==========================================
-// Charts (Pure Canvas - no library)
+// Client Management
 // ==========================================
+function getClients() { return loadData('salonClients', DEMO_CLIENTS); }
+function saveClients(c) { saveData('salonClients', c); }
+let currentClientId = null;
+
+function renderClients(query) {
+  const grid = document.getElementById('clientsGrid');
+  if (!grid) return;
+  let clients = getClients();
+  if (query) { const q = query.toLowerCase(); clients = clients.filter(c => c.name.toLowerCase().includes(q) || (c.tags||'').toLowerCase().includes(q)); }
+
+  grid.innerHTML = clients.map(c => {
+    const totalSpent = (c.visits||[]).reduce((s,v) => s + (v.price||0), 0);
+    const lastVisit = (c.visits||[]).length > 0 ? c.visits[0].date : '—';
+    return `
+    <div class="client-card" data-id="${c.id}">
+      <div class="client-avatar">${c.name[0]}</div>
+      <div class="client-info">
+        <strong>${c.name}</strong>
+        <span>${c.phone || '—'}</span>
+        <div class="client-stats">
+          <span>指名: ${c.designations || 0}回</span>
+          <span>累計: $${totalSpent}</span>
+        </div>
+        <span class="client-last">最終来店: ${lastVisit}</span>
+      </div>
+      <div class="client-tags">${(c.tags||'').split(',').filter(t=>t).map(t => `<span class="tag">${t.trim()}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.client-card').forEach(card => {
+    card.addEventListener('click', () => openClientModal(card.dataset.id));
+  });
+}
+
+function initClientSection() {
+  const searchInput = document.getElementById('clientSearch');
+  if (searchInput) searchInput.addEventListener('input', () => renderClients(searchInput.value));
+
+  document.getElementById('addClientBtn')?.addEventListener('click', () => openClientModal(null));
+  document.getElementById('clientModalClose')?.addEventListener('click', closeClientModal);
+  document.getElementById('clientCancelBtn')?.addEventListener('click', closeClientModal);
+
+  // Tabs
+  document.querySelectorAll('.detail-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1))?.classList.add('active');
+    });
+  });
+
+  // Client form submit
+  document.getElementById('clientForm')?.addEventListener('submit', (e) => { e.preventDefault(); saveClientFromForm(); });
+
+  // Visit add
+  document.getElementById('addVisitBtn')?.addEventListener('click', () => { document.getElementById('visitAddForm').style.display = 'block'; });
+  document.getElementById('visitCancelBtn')?.addEventListener('click', () => { document.getElementById('visitAddForm').style.display = 'none'; });
+  document.getElementById('visitSaveBtn')?.addEventListener('click', saveVisit);
+
+  // Save notes
+  document.getElementById('saveNotesBtn')?.addEventListener('click', saveClientNotes);
+}
+
+function openClientModal(id) {
+  currentClientId = id;
+  const modal = document.getElementById('clientModal');
+  const title = document.getElementById('clientModalTitle');
+
+  // Reset tabs
+  document.querySelectorAll('.detail-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.detail-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+
+  if (id) {
+    const clients = getClients();
+    const c = clients.find(x => x.id === id);
+    if (!c) return;
+    title.textContent = c.name + ' — 顧客詳細';
+    document.getElementById('clientEditId').value = c.id;
+    document.getElementById('clientName').value = c.name;
+    document.getElementById('clientPhone').value = c.phone || '';
+    document.getElementById('clientEmail').value = c.email || '';
+    document.getElementById('clientSince').value = c.since || '';
+    document.getElementById('clientDesignations').value = c.designations || 0;
+    document.getElementById('clientTags').value = c.tags || '';
+    // Notes
+    document.getElementById('clientNoteHair').value = c.notes?.hair || '';
+    document.getElementById('clientNoteChem').value = c.notes?.chem || '';
+    document.getElementById('clientNotePref').value = c.notes?.pref || '';
+    document.getElementById('clientNoteOther').value = c.notes?.other || '';
+    // Visit history
+    renderVisitHistory(c.visits || []);
+  } else {
+    title.textContent = '新規顧客登録';
+    document.getElementById('clientEditId').value = '';
+    document.getElementById('clientForm').reset();
+    document.getElementById('clientNoteHair').value = '';
+    document.getElementById('clientNoteChem').value = '';
+    document.getElementById('clientNotePref').value = '';
+    document.getElementById('clientNoteOther').value = '';
+    document.getElementById('visitHistoryList').innerHTML = '<p class="empty-text">来店履歴はまだありません</p>';
+  }
+  document.getElementById('visitAddForm').style.display = 'none';
+  modal.classList.add('open');
+}
+
+function closeClientModal() { document.getElementById('clientModal').classList.remove('open'); currentClientId = null; }
+
+function saveClientFromForm() {
+  const id = document.getElementById('clientEditId').value;
+  const clients = getClients();
+  const existing = id ? clients.find(c => c.id === id) : null;
+
+  const client = {
+    id: id || 'c-' + Date.now(),
+    name: document.getElementById('clientName').value.trim(),
+    phone: document.getElementById('clientPhone').value.trim(),
+    email: document.getElementById('clientEmail').value.trim(),
+    since: document.getElementById('clientSince').value,
+    designations: parseInt(document.getElementById('clientDesignations').value) || 0,
+    tags: document.getElementById('clientTags').value.trim(),
+    visits: existing?.visits || [],
+    notes: existing?.notes || { hair:'', chem:'', pref:'', other:'' }
+  };
+
+  if (existing) { Object.assign(existing, client); }
+  else { clients.push(client); }
+  saveClients(clients);
+  renderClients();
+  closeClientModal();
+  showToast(id ? '顧客情報を更新しました' : '新規顧客を登録しました');
+}
+
+function renderVisitHistory(visits) {
+  const list = document.getElementById('visitHistoryList');
+  if (!list) return;
+  if (!visits.length) { list.innerHTML = '<p class="empty-text">来店履歴はまだありません</p>'; return; }
+  list.innerHTML = visits.map((v, i) => `
+    <div class="visit-item">
+      <span class="visit-date">${v.date}</span>
+      <span class="visit-menu">${v.menu}</span>
+      <span class="visit-price">$${v.price}</span>
+      <span class="visit-note">${v.note || '—'}</span>
+    </div>`).join('');
+}
+
+function saveVisit() {
+  if (!currentClientId) return;
+  const clients = getClients();
+  const c = clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const visit = {
+    date: document.getElementById('visitDate').value,
+    menu: document.getElementById('visitMenu').value.trim(),
+    price: parseInt(document.getElementById('visitPrice').value) || 0,
+    note: document.getElementById('visitNote').value.trim()
+  };
+  if (!visit.date || !visit.menu) { showToast('日付とメニューを入力してください'); return; }
+  if (!c.visits) c.visits = [];
+  c.visits.unshift(visit);
+  saveClients(clients);
+  renderVisitHistory(c.visits);
+  document.getElementById('visitAddForm').style.display = 'none';
+  showToast('来店履歴を追加しました');
+}
+
+function saveClientNotes() {
+  if (!currentClientId) return;
+  const clients = getClients();
+  const c = clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  c.notes = {
+    hair: document.getElementById('clientNoteHair').value.trim(),
+    chem: document.getElementById('clientNoteChem').value.trim(),
+    pref: document.getElementById('clientNotePref').value.trim(),
+    other: document.getElementById('clientNoteOther').value.trim()
+  };
+  saveClients(clients);
+  showToast('メモを保存しました');
+}
+
+// ==========================================
+// Messages
+// ==========================================
+function initMessages() {
+  const msgs = loadData('salonMessages', DEMO_MESSAGES);
+  renderMessageHistory(msgs);
+  document.getElementById('saveMsgTemplates')?.addEventListener('click', () => {
+    saveData('salonMsgTemplates', {
+      confirm: document.getElementById('tmplConfirm')?.value || '',
+      reminder: document.getElementById('tmplReminder')?.value || '',
+      cancel: document.getElementById('tmplCancel')?.value || ''
+    });
+    showToast('テンプレートを保存しました');
+  });
+  // Load saved templates
+  const t = loadData('salonMsgTemplates', null);
+  if (t) {
+    if (t.confirm) document.getElementById('tmplConfirm').value = t.confirm;
+    if (t.reminder) document.getElementById('tmplReminder').value = t.reminder;
+    if (t.cancel) document.getElementById('tmplCancel').value = t.cancel;
+  }
+}
+
+function renderMessageHistory(msgs) {
+  const c = document.getElementById('msgHistory');
+  if (!c) return;
+  const typeLabels = { confirmation:'予約確定', reminder:'リマインド', cancellation:'キャンセル' };
+  c.innerHTML = msgs.map(m => `
+    <div class="msg-item">
+      <div class="msg-type-badge msg-${m.type}">${typeLabels[m.type] || m.type}</div>
+      <div class="msg-detail"><strong>${m.to}</strong><p>${m.content}</p><span class="msg-time">${m.sentAt}</span></div>
+      <span class="msg-status-badge">${m.status === 'sent' ? '送信済' : '保留'}</span>
+    </div>`).join('');
+}
+
+// ==========================================
+// Coupons
+// ==========================================
+function getCoupons() { return loadData('salonCoupons', DEMO_COUPONS); }
+function saveCouponsData(c) { saveData('salonCoupons', c); }
+
+function initCoupons() {
+  renderCoupons();
+  document.getElementById('addCouponBtn')?.addEventListener('click', () => openCouponModal(null));
+  document.getElementById('couponModalClose')?.addEventListener('click', closeCouponModal);
+  document.getElementById('couponCancelBtn')?.addEventListener('click', closeCouponModal);
+  document.getElementById('couponForm')?.addEventListener('submit', (e) => { e.preventDefault(); saveCouponFromModal(); });
+}
+
+function renderCoupons() {
+  const grid = document.getElementById('couponsGrid');
+  if (!grid) return;
+  const coupons = getCoupons();
+  grid.innerHTML = coupons.map(c => `
+    <div class="coupon-card ${c.isActive ? '' : 'expired'}">
+      <div class="coupon-header">
+        <h4>${c.name}</h4>
+        <span class="coupon-badge">${c.type === 'percent' ? c.discount + '%OFF' : '$' + c.discount + ' OFF'}</span>
+      </div>
+      <div class="coupon-body">
+        <p>${c.conditions || '条件なし'}</p>
+        <span class="coupon-period">${c.validFrom} 〜 ${c.validTo}</span>
+        <span class="coupon-usage">使用回数: ${c.usageCount || 0}回</span>
+      </div>
+      <div class="coupon-actions">
+        <button class="edit-btn" onclick="openCouponModal(getCoupons().find(x=>x.id==='${c.id}'))">編集</button>
+        <button class="delete-btn" onclick="deleteCoupon('${c.id}')">削除</button>
+      </div>
+    </div>`).join('');
+}
+
+function openCouponModal(c) {
+  const modal = document.getElementById('couponModal');
+  const title = document.getElementById('couponModalTitle');
+  if (c) {
+    title.textContent = 'クーポン編集';
+    document.getElementById('couponEditId').value = c.id;
+    document.getElementById('couponName').value = c.name;
+    document.getElementById('couponType').value = c.type;
+    document.getElementById('couponDiscount').value = c.discount;
+    document.getElementById('couponFrom').value = c.validFrom;
+    document.getElementById('couponTo').value = c.validTo;
+    document.getElementById('couponConditions').value = c.conditions || '';
+  } else {
+    title.textContent = '新規クーポン';
+    document.getElementById('couponEditId').value = '';
+    document.getElementById('couponForm').reset();
+  }
+  modal.classList.add('open');
+}
+
+function closeCouponModal() { document.getElementById('couponModal').classList.remove('open'); }
+
+function saveCouponFromModal() {
+  const id = document.getElementById('couponEditId').value;
+  const coupon = {
+    id: id || 'cp-' + Date.now(),
+    name: document.getElementById('couponName').value.trim(),
+    type: document.getElementById('couponType').value,
+    discount: parseInt(document.getElementById('couponDiscount').value) || 0,
+    validFrom: document.getElementById('couponFrom').value,
+    validTo: document.getElementById('couponTo').value,
+    conditions: document.getElementById('couponConditions').value.trim(),
+    isActive: true,
+    usageCount: 0
+  };
+  const coupons = getCoupons();
+  const idx = coupons.findIndex(c => c.id === id);
+  if (idx >= 0) { coupon.usageCount = coupons[idx].usageCount; coupons[idx] = coupon; }
+  else { coupons.push(coupon); }
+  saveCouponsData(coupons);
+  renderCoupons();
+  closeCouponModal();
+  showToast(idx >= 0 ? 'クーポンを更新しました' : '新規クーポンを作成しました');
+}
+
+function deleteCoupon(id) {
+  if (!confirm('このクーポンを削除しますか？')) return;
+  saveCouponsData(getCoupons().filter(c => c.id !== id));
+  renderCoupons();
+  showToast('クーポンを削除しました');
+}
+
+// ==========================================
+// Charts
+// ==========================================
+function getCanvasSize(canvas, defaultW, defaultH) {
+  const parent = canvas.parentElement;
+  const rect = parent.getBoundingClientRect();
+  let w = rect.width;
+  let h = rect.height;
+  if (w < 10) w = parent.offsetWidth || defaultW || 500;
+  if (h < 10) h = parent.offsetHeight || defaultH || 220;
+  if (w < 10) w = defaultW || 500;
+  if (h < 10) h = defaultH || 220;
+  return { w, h };
+}
+
 function initCharts() {
   drawRevenueChart();
-  drawMenuChart();
+  drawMenuDonut();
   drawWeekdayChart();
   drawHourChart();
   drawClientTypeChart();
+  drawDailyRevenueChart();
 }
 
-// --- Revenue Bar Chart ---
 function drawRevenueChart() {
   const canvas = document.getElementById('revenueChart');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
   const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.scale(dpr, dpr);
+  canvas.width = rect.width; canvas.height = rect.height;
+  const data = [3200, 3800, 4100, 3600, 4500, 4872];
+  const labels = ['10月','11月','12月','1月','2月','3月'];
+  const max = Math.max(...data) * 1.2;
+  const w = canvas.width, h = canvas.height, pad = 50, gw = w - pad * 2, gh = h - pad * 2;
 
-  const w = rect.width;
-  const h = rect.height;
-  const data = [320000, 385000, 410000, 365000, 445000, 487200];
-  const labels = ['10月', '11月', '12月', '1月', '2月', '3月'];
-  const max = Math.max(...data) * 1.15;
-
-  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
-  const barW = chartW / data.length * 0.5;
-  const gap = chartW / data.length;
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (chartH / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(w - pad.right, y);
-    ctx.stroke();
-
-    // Labels
-    ctx.fillStyle = '#555';
-    ctx.font = '10px "Noto Sans JP"';
-    ctx.textAlign = 'right';
-    const val = Math.round(max - (max / 4) * i);
-    ctx.fillText('¥' + (val / 10000).toFixed(0) + '万', pad.left - 8, y + 3);
-  }
-
-  // Bars
-  data.forEach((val, i) => {
-    const x = pad.left + gap * i + (gap - barW) / 2;
-    const barH = (val / max) * chartH;
-    const y = pad.top + chartH - barH;
-
-    // Gradient
-    const grad = ctx.createLinearGradient(x, y, x, y + barH);
-    grad.addColorStop(0, '#c9a96e');
-    grad.addColorStop(1, 'rgba(201,169,110,0.3)');
-
-    ctx.fillStyle = grad;
-    roundRect(ctx, x, y, barW, barH, 4);
-    ctx.fill();
-
-    // Value on top
-    ctx.fillStyle = '#c9a96e';
-    ctx.font = '10px "Cormorant Garamond"';
-    ctx.textAlign = 'center';
-    ctx.fillText('¥' + (val / 10000).toFixed(1) + '万', x + barW / 2, y - 6);
-
-    // X label
-    ctx.fillStyle = '#666';
-    ctx.font = '11px "Noto Sans JP"';
-    ctx.fillText(labels[i], x + barW / 2, h - pad.bottom + 20);
-  });
+  ctx.clearRect(0, 0, w, h);
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = pad + gh - (gh * i / 4); ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right'; ctx.fillText('$' + Math.round(max * i / 4), pad - 8, y + 4); }
+  // Line + gradient
+  const grad = ctx.createLinearGradient(0, pad, 0, h - pad);
+  grad.addColorStop(0, 'rgba(198,163,124,0.3)'); grad.addColorStop(1, 'rgba(198,163,124,0)');
+  ctx.beginPath();
+  data.forEach((v, i) => { const x = pad + (gw / (data.length - 1)) * i; const y = pad + gh - (v / max * gh); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+  ctx.strokeStyle = '#c6a37c'; ctx.lineWidth = 2.5; ctx.stroke();
+  // Fill
+  const lastX = pad + gw; const lastY = pad + gh - (data[data.length - 1] / max * gh);
+  ctx.lineTo(lastX, pad + gh); ctx.lineTo(pad, pad + gh); ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+  // Dots + labels
+  data.forEach((v, i) => { const x = pad + (gw / (data.length - 1)) * i; const y = pad + gh - (v / max * gh); ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = '#c6a37c'; ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(labels[i], x, h - pad + 20); });
 }
 
-// --- Donut Chart ---
-function drawMenuChart() {
+function drawMenuDonut() {
   const canvas = document.getElementById('menuChart');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  canvas.width = 160 * dpr;
-  canvas.height = 160 * dpr;
-  canvas.style.width = '160px';
-  canvas.style.height = '160px';
-  ctx.scale(dpr, dpr);
-
-  const data = [
-    { label: 'カット', value: 28, color: '#c9a96e' },
-    { label: 'カラー', value: 22, color: '#34d399' },
-    { label: 'パーマ', value: 15, color: '#60a5fa' },
-    { label: 'トリートメント', value: 18, color: '#fbbf24' },
-    { label: 'その他', value: 17, color: '#a78bfa' },
-  ];
-
-  const total = data.reduce((s, d) => s + d.value, 0);
-  const cx = 80, cy = 80, r = 60, innerR = 40;
-  let angle = -Math.PI / 2;
-
-  data.forEach(d => {
-    const sliceAngle = (d.value / total) * Math.PI * 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, angle, angle + sliceAngle);
-    ctx.arc(cx, cy, innerR, angle + sliceAngle, angle, true);
-    ctx.closePath();
-    ctx.fillStyle = d.color;
-    ctx.fill();
-    angle += sliceAngle;
-  });
-
-  // Center text
-  ctx.fillStyle = '#f0f0eb';
-  ctx.font = '600 18px "Cormorant Garamond"';
-  ctx.textAlign = 'center';
-  ctx.fillText(total, cx, cy + 2);
-  ctx.fillStyle = '#666';
-  ctx.font = '9px "Noto Sans JP"';
-  ctx.fillText('施術数', cx, cy + 16);
-
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = Math.min(rect.width, 200); canvas.height = Math.min(rect.height, 200);
+  const data = [30, 25, 20, 12, 8, 5];
+  const labels = ['カット+カラー','カット','カラー','パーマ','トリートメント','ヘッドスパ'];
+  const colors = ['#c6a37c','#e8a87c','#9c8b7a','#d4a574','#a08c78','#b89b72'];
+  const total = data.reduce((a, b) => a + b, 0);
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = Math.min(cx, cy) - 10;
+  let start = -Math.PI / 2;
+  data.forEach((v, i) => { const angle = (v / total) * Math.PI * 2; ctx.beginPath(); ctx.arc(cx, cy, r, start, start + angle); ctx.arc(cx, cy, r * 0.6, start + angle, start, true); ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill(); start += angle; });
   // Legend
   const legend = document.getElementById('donutLegend');
-  legend.innerHTML = data.map(d => `
-    <div class="legend-item">
-      <span class="legend-dot" style="background:${d.color}"></span>
-      ${d.label} (${d.value}%)
-    </div>
-  `).join('');
+  if (legend) legend.innerHTML = labels.map((l, i) => `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span>${l} ${data[i]}%</div>`).join('');
 }
 
-// --- Weekday Chart ---
 function drawWeekdayChart() {
   const canvas = document.getElementById('weekdayChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.scale(dpr, dpr);
-
-  const w = rect.width, h = rect.height;
-  const data = [4, 0, 0, 5, 7, 8, 6]; // 日〜土, 火曜定休
-  const labels = ['日', '月', '火', '水', '木', '金', '土'];
-  const max = Math.max(...data) * 1.2;
-  const pad = { top: 20, right: 20, bottom: 40, left: 40 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
-  const barW = chartW / data.length * 0.5;
-  const gap = chartW / data.length;
-
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (chartH / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
-  }
-
-  data.forEach((val, i) => {
-    const x = pad.left + gap * i + (gap - barW) / 2;
-    const barH = max > 0 ? (val / max) * chartH : 0;
-    const y = pad.top + chartH - barH;
-
-    const color = val === 0 ? 'rgba(255,255,255,0.05)' : (i === 5 ? '#c9a96e' : 'rgba(201,169,110,0.5)');
-    ctx.fillStyle = color;
-    roundRect(ctx, x, y, barW, barH || 2, 3);
-    ctx.fill();
-
-    if (val > 0) {
-      ctx.fillStyle = '#c9a96e';
-      ctx.font = '10px "Cormorant Garamond"';
-      ctx.textAlign = 'center';
-      ctx.fillText(val, x + barW / 2, y - 6);
-    }
-
-    ctx.fillStyle = i === 2 ? '#f87171' : '#666';
-    ctx.font = '11px "Noto Sans JP"';
-    ctx.textAlign = 'center';
-    ctx.fillText(labels[i], x + barW / 2, h - pad.bottom + 20);
-  });
+  const size = getCanvasSize(canvas, 500, 220);
+  canvas.width = size.w; canvas.height = size.h;
+  const data = [8, 12, 0, 15, 14, 18, 20];
+  const labels = ['日','月','火','水','木','金','土'];
+  const max = Math.max(...data) * 1.2 || 1;
+  const w = canvas.width, h = canvas.height, pad = 40, bw = (w - pad * 2) / data.length * 0.6;
+  ctx.clearRect(0, 0, w, h);
+  data.forEach((v, i) => { const x = pad + ((w - pad * 2) / data.length) * i + bw * 0.3; const bh = (v / max) * (h - pad * 2); const y = h - pad - bh; ctx.fillStyle = i === 2 ? 'rgba(198,163,124,0.2)' : '#c6a37c'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 4); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(labels[i], x + bw / 2, h - pad + 16); if (v > 0) { ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(v, x + bw / 2, y - 6); } });
 }
 
-// --- Hour Chart ---
 function drawHourChart() {
   const canvas = document.getElementById('hourChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.scale(dpr, dpr);
-
-  const w = rect.width, h = rect.height;
-  const data = [5, 7, 4, 8, 9, 6, 7, 5, 3, 2];
-  const labels = ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19'];
+  const size = getCanvasSize(canvas, 500, 220);
+  canvas.width = size.w; canvas.height = size.h;
+  const data = [5, 8, 12, 10, 14, 12, 8, 6, 3, 1];
+  const labels = ['10','11','12','13','14','15','16','17','18','19'];
   const max = Math.max(...data) * 1.2;
-  const pad = { top: 20, right: 20, bottom: 40, left: 40 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
-
-  // Draw area
-  const stepX = chartW / (data.length - 1);
-
-  // Fill area
-  ctx.beginPath();
-  ctx.moveTo(pad.left, pad.top + chartH);
-  data.forEach((val, i) => {
-    const x = pad.left + stepX * i;
-    const y = pad.top + chartH - (val / max) * chartH;
-    if (i === 0) ctx.lineTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.lineTo(pad.left + chartW, pad.top + chartH);
-  ctx.closePath();
-
-  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
-  grad.addColorStop(0, 'rgba(201,169,110,0.2)');
-  grad.addColorStop(1, 'rgba(201,169,110,0)');
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // Draw line
-  ctx.beginPath();
-  data.forEach((val, i) => {
-    const x = pad.left + stepX * i;
-    const y = pad.top + chartH - (val / max) * chartH;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = '#c9a96e';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Dots
-  data.forEach((val, i) => {
-    const x = pad.left + stepX * i;
-    const y = pad.top + chartH - (val / max) * chartH;
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#c9a96e';
-    ctx.fill();
-
-    ctx.fillStyle = '#666';
-    ctx.font = '10px "Noto Sans JP"';
-    ctx.textAlign = 'center';
-    ctx.fillText(labels[i] + '時', x, h - pad.bottom + 20);
-  });
+  const w = canvas.width, h = canvas.height, pad = 40, bw = (w - pad * 2) / data.length * 0.6;
+  ctx.clearRect(0, 0, w, h);
+  data.forEach((v, i) => { const x = pad + ((w - pad * 2) / data.length) * i + bw * 0.3; const bh = (v / max) * (h - pad * 2); const y = h - pad - bh; ctx.fillStyle = '#c6a37c'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 4); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(labels[i] + ':00', x + bw / 2, h - pad + 16); if (v > 0) { ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(v, x + bw / 2, y - 6); } });
 }
 
-// --- Client Type Chart ---
 function drawClientTypeChart() {
   const canvas = document.getElementById('clientTypeChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.scale(dpr, dpr);
-
-  const w = rect.width, h = rect.height;
-  const newClients = [12, 15, 10, 18, 14, 18];
-  const repeaters = [38, 42, 45, 40, 48, 52];
-  const labels = ['10月', '11月', '12月', '1月', '2月', '3月'];
-  const max = Math.max(...repeaters.map((r, i) => r + newClients[i])) * 1.15;
-  const pad = { top: 20, right: 20, bottom: 40, left: 50 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
-  const gap = chartW / labels.length;
-  const barW = gap * 0.3;
-
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (chartH / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
-    ctx.fillStyle = '#555'; ctx.font = '10px "Noto Sans JP"'; ctx.textAlign = 'right';
-    ctx.fillText(Math.round(max - (max / 4) * i), pad.left - 8, y + 3);
-  }
-
-  labels.forEach((lbl, i) => {
-    const cx = pad.left + gap * i + gap / 2;
-
-    // Repeater bar
-    const rH = (repeaters[i] / max) * chartH;
-    const rY = pad.top + chartH - rH;
-    ctx.fillStyle = '#c9a96e';
-    roundRect(ctx, cx - barW - 2, rY, barW, rH, 3);
-    ctx.fill();
-
-    // New client bar
-    const nH = (newClients[i] / max) * chartH;
-    const nY = pad.top + chartH - nH;
-    ctx.fillStyle = '#60a5fa';
-    roundRect(ctx, cx + 2, nY, barW, nH, 3);
-    ctx.fill();
-
-    ctx.fillStyle = '#666'; ctx.font = '11px "Noto Sans JP"'; ctx.textAlign = 'center';
-    ctx.fillText(lbl, cx, h - pad.bottom + 20);
+  const size = getCanvasSize(canvas, 800, 220);
+  canvas.width = size.w; canvas.height = size.h;
+  const newC = [8, 10, 7, 12, 9, 18];
+  const rep = [25, 28, 30, 22, 35, 44];
+  const labels = ['10月','11月','12月','1月','2月','3月'];
+  const max = Math.max(...newC.map((v, i) => v + rep[i])) * 1.2;
+  const w = canvas.width, h = canvas.height, pad = 50, bw = (w - pad * 2) / labels.length * 0.35;
+  ctx.clearRect(0, 0, w, h);
+  labels.forEach((l, i) => {
+    const cx = pad + ((w - pad * 2) / labels.length) * i + ((w - pad * 2) / labels.length) / 2;
+    const bh1 = (newC[i] / max) * (h - pad * 2); const bh2 = (rep[i] / max) * (h - pad * 2);
+    ctx.fillStyle = '#e8a87c'; ctx.beginPath(); ctx.roundRect(cx - bw - 2, h - pad - bh1, bw, bh1, 3); ctx.fill();
+    ctx.fillStyle = '#c6a37c'; ctx.beginPath(); ctx.roundRect(cx + 2, h - pad - bh2, bw, bh2, 3); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(l, cx, h - pad + 18);
   });
-
   // Legend
-  ctx.fillStyle = '#c9a96e';
-  roundRect(ctx, w - 180, 8, 10, 10, 2); ctx.fill();
-  ctx.fillStyle = '#999'; ctx.font = '10px "Noto Sans JP"'; ctx.textAlign = 'left';
-  ctx.fillText('リピーター', w - 166, 17);
-
-  ctx.fillStyle = '#60a5fa';
-  roundRect(ctx, w - 90, 8, 10, 10, 2); ctx.fill();
-  ctx.fillStyle = '#999';
-  ctx.fillText('新規', w - 76, 17);
+  ctx.fillStyle = '#e8a87c'; ctx.fillRect(w - 160, 12, 12, 12); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('新規', w - 143, 22);
+  ctx.fillStyle = '#c6a37c'; ctx.fillRect(w - 100, 12, 12, 12); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillText('リピーター', w - 83, 22);
 }
 
-// --- Utility: rounded rectangle ---
-function roundRect(ctx, x, y, w, h, r) {
-  if (h < 0) { y += h; h = -h; }
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+function drawDailyRevenueChart() {
+  const canvas = document.getElementById('dailyRevenueChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = getCanvasSize(canvas, 800, 220);
+  canvas.width = size.w; canvas.height = size.h;
+  const data = [];
+  for (let i = 1; i <= 16; i++) data.push(Math.floor(Math.random() * 300 + 100));
+  const max = Math.max(...data) * 1.2;
+  const w = canvas.width, h = canvas.height, pad = 50, gw = w - pad * 2, gh = h - pad * 2;
+  ctx.clearRect(0, 0, w, h);
+  // Grid
+  for (let i = 0; i <= 4; i++) { const y = pad + gh - (gh * i / 4); ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke(); }
+  // Bars
+  const bw = (gw / data.length) * 0.7;
+  data.forEach((v, i) => { const x = pad + (gw / data.length) * i + (gw / data.length - bw) / 2; const bh = (v / max) * gh; const y = pad + gh - bh; ctx.fillStyle = '#c6a37c'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 3); ctx.fill(); if (i % 5 === 0 || i === data.length - 1) { ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText((i + 1) + '日', x + bw / 2, h - pad + 14); } });
+}
+
+function initAnalyticsExtra() {
+  // Analytics KPIs are static demo data for now
 }
 
 // ==========================================
-// Resize handler for charts
+// Schedule (kept for overview)
 // ==========================================
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    initCharts();
-  }, 200);
-});
+function renderSchedule() { /* used by overview timeline */ }
 
 // ==========================================
-// Site Management — Full CRUD
+// Site Management
 // ==========================================
+function getManagedMenuItems() { return loadData('salonMenuItems', JSON.parse(JSON.stringify(DEFAULT_MENU_ITEMS))); }
+function saveManagedMenuItems(items) { saveData('salonMenuItems', items); }
+function getSiteData() { return loadData('salonSiteData', {}); }
+function saveSiteData(data) { saveData('salonSiteData', data); }
 
-// Default menu items (same as app.js DEFAULT_MENU_ITEMS)
-const DEFAULT_MENU_ITEMS = [
-  {
-    id: 'cut',
-    name: { ja: 'カット', en: 'Haircut', zh: '剪发' },
-    price: '$60', priceNum: 60,
-    desc: {
-      ja: '骨格診断に基づいた似合わせカット。再現性の高いスタイルをご提案。',
-      en: 'Personalized cut based on facial structure analysis.',
-      zh: '根据面部骨骼诊断打造最适合您的发型。'
-    },
-    time: { ja: '約60分', en: '~60 min', zh: '约60分钟' },
-    timeNum: 60
-  },
-  {
-    id: 'cut-color',
-    name: { ja: 'カット + カラー', en: 'Cut + Color', zh: '剪发 + 染发' },
-    price: '$120', priceNum: 120,
-    desc: {
-      ja: 'カットとカラーのセットメニュー。トレンドからナチュラルまで。',
-      en: 'A set menu of cut and color. Trendy to natural shades.',
-      zh: '剪发与染发套餐。从流行到自然色。'
-    },
-    time: { ja: '約120分', en: '~120 min', zh: '约120分钟' },
-    timeNum: 120
-  },
-  {
-    id: 'color',
-    name: { ja: 'カラー', en: 'Color', zh: '染发' },
-    price: '$80', priceNum: 80,
-    desc: {
-      ja: 'イルミナカラー等、ダメージレスな薬剤を使用。',
-      en: 'Low-damage formulas like Illumina Color.',
-      zh: '使用Illumina Color等低损伤染发剂。'
-    },
-    time: { ja: '約90分', en: '~90 min', zh: '约90分钟' },
-    timeNum: 90
-  },
-  {
-    id: 'perm',
-    name: { ja: 'パーマ', en: 'Perm', zh: '烫发' },
-    price: '$90', priceNum: 90,
-    desc: {
-      ja: 'デジタルパーマで柔らかいカールを実現。',
-      en: 'Soft curls with digital perm technique.',
-      zh: '数码烫打造柔软卷发。'
-    },
-    time: { ja: '約120分', en: '~120 min', zh: '约120分钟' },
-    timeNum: 120
-  },
-  {
-    id: 'treatment',
-    name: { ja: 'トリートメント', en: 'Treatment', zh: '护理' },
-    price: '$50', priceNum: 50,
-    desc: {
-      ja: 'TOKIOトリートメントで髪の内部から補修。',
-      en: 'TOKIO treatment repairs hair from within.',
-      zh: 'TOKIO护理从内部修复秀发。'
-    },
-    time: { ja: '約45分', en: '~45 min', zh: '约45分钟' },
-    timeNum: 45
-  },
-  {
-    id: 'head-spa',
-    name: { ja: 'ヘッドスパ', en: 'Head Spa', zh: '头皮SPA' },
-    price: '$40', priceNum: 40,
-    desc: {
-      ja: '頭皮の状態に合わせた本格ヘッドスパ。',
-      en: 'Professional head spa customized to your scalp.',
-      zh: '根据头皮状况定制的专业SPA。'
-    },
-    time: { ja: '約40分', en: '~40 min', zh: '约40分钟' },
-    timeNum: 40
-  }
-];
+function initSiteManage() { initSiteInfoForm(); initMenuManagement(); initPhotoManagement(); }
 
-function getManagedMenuItems() {
-  try {
-    const saved = localStorage.getItem('salonMenuItems');
-    if (saved) return JSON.parse(saved);
-  } catch(e) { /* ignore */ }
-  return JSON.parse(JSON.stringify(DEFAULT_MENU_ITEMS));
-}
-
-function saveManagedMenuItems(items) {
-  localStorage.setItem('salonMenuItems', JSON.stringify(items));
-}
-
-function getSiteData() {
-  try {
-    const saved = localStorage.getItem('salonSiteData');
-    if (saved) return JSON.parse(saved);
-  } catch(e) { /* ignore */ }
-  return {};
-}
-
-function saveSiteData(data) {
-  localStorage.setItem('salonSiteData', JSON.stringify(data));
-}
-
-function initSiteManage() {
-  initSiteInfoForm();
-  initMenuManagement();
-  initPhotoManagement();
-}
-
-// --- Site Info Form ---
 function initSiteInfoForm() {
   const form = document.getElementById('siteInfoForm');
   if (!form) return;
-
-  // Load saved data into form
   loadSiteInfoIntoForm();
-
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const data = getSiteData();
-
-    data.stylistName = document.getElementById('editStylistName').value.trim() || null;
-    data.salonName = document.getElementById('editSalonName').value.trim() || null;
-    data.stylistBio = document.getElementById('editStylistBio').value.trim() || null;
-    data.instagram = document.getElementById('editInstagram').value.trim() || null;
-    data.yearsExp = document.getElementById('editYearsExp').value.trim() || null;
-    data.clientsServed = document.getElementById('editClientsServed').value.trim() || null;
-    data.rating = document.getElementById('editRating').value.trim() || null;
-    data.address = document.getElementById('editAddress').value.trim() || null;
-    data.businessHours = document.getElementById('editBusinessHours').value.trim() || null;
-    data.closedDay = document.getElementById('editClosedDay').value.trim() || null;
-    data.phone = document.getElementById('editPhone').value.trim() || null;
-    data.email = document.getElementById('editEmail').value.trim() || null;
-
-    saveSiteData(data);
-    showToast('サイト情報を保存しました');
-  });
-
-  // Reset button
-  const resetBtn = document.getElementById('resetSiteInfoBtn');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (confirm('サイト情報をリセットしますか？')) {
-        const data = getSiteData();
-        delete data.stylistName;
-        delete data.salonName;
-        delete data.stylistBio;
-        delete data.instagram;
-        delete data.yearsExp;
-        delete data.clientsServed;
-        delete data.rating;
-        delete data.address;
-        delete data.businessHours;
-        delete data.closedDay;
-        delete data.phone;
-        delete data.email;
-        saveSiteData(data);
-        loadSiteInfoIntoForm();
-        showToast('リセットしました');
-      }
+    ['stylistName','salonName','stylistBio','instagram','yearsExp','clientsServed','rating','address','businessHours','closedDay','phone','email'].forEach(key => {
+      const el = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1));
+      if (el) data[key] = el.value.trim() || null;
     });
-  }
+    saveSiteData(data); showToast('サイト情報を保存しました');
+  });
+  document.getElementById('resetSiteInfoBtn')?.addEventListener('click', () => {
+    if (!confirm('リセットしますか？')) return;
+    const data = getSiteData();
+    ['stylistName','salonName','stylistBio','instagram','yearsExp','clientsServed','rating','address','businessHours','closedDay','phone','email'].forEach(k => delete data[k]);
+    saveSiteData(data); loadSiteInfoIntoForm(); showToast('リセットしました');
+  });
 }
 
 function loadSiteInfoIntoForm() {
   const data = getSiteData();
-  document.getElementById('editStylistName').value = data.stylistName || '';
-  document.getElementById('editSalonName').value = data.salonName || '';
-  document.getElementById('editStylistBio').value = data.stylistBio || '';
-  document.getElementById('editInstagram').value = data.instagram || '';
-  document.getElementById('editYearsExp').value = data.yearsExp || '';
-  document.getElementById('editClientsServed').value = data.clientsServed || '';
-  document.getElementById('editRating').value = data.rating || '';
-  document.getElementById('editAddress').value = data.address || '';
-  document.getElementById('editBusinessHours').value = data.businessHours || '';
-  document.getElementById('editClosedDay').value = data.closedDay || '';
-  document.getElementById('editPhone').value = data.phone || '';
-  document.getElementById('editEmail').value = data.email || '';
+  const fields = {editStylistName:'stylistName',editSalonName:'salonName',editStylistBio:'stylistBio',editInstagram:'instagram',editYearsExp:'yearsExp',editClientsServed:'clientsServed',editRating:'rating',editAddress:'address',editBusinessHours:'businessHours',editClosedDay:'closedDay',editPhone:'phone',editEmail:'email'};
+  Object.entries(fields).forEach(([elId, key]) => { const el = document.getElementById(elId); if (el) el.value = data[key] || ''; });
 }
 
-// --- Menu Management ---
 function initMenuManagement() {
   renderMenuMgmtList();
-
-  // Add button
-  const addBtn = document.getElementById('addMenuBtn');
-  if (addBtn) {
-    addBtn.addEventListener('click', () => {
-      openMenuModal(null);
-    });
-  }
-
-  // Form submit
-  const menuForm = document.getElementById('menuForm');
-  if (menuForm) {
-    menuForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      saveMenuFromModal();
-    });
-  }
-
-  // Close/Cancel
-  const closeBtn = document.getElementById('modalClose');
-  const cancelBtn = document.getElementById('modalCancelBtn');
-  if (closeBtn) closeBtn.addEventListener('click', closeMenuModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeMenuModal);
+  document.getElementById('addMenuBtn')?.addEventListener('click', () => openMenuModal(null));
+  document.getElementById('menuForm')?.addEventListener('submit', (e) => { e.preventDefault(); saveMenuFromModal(); });
+  document.getElementById('modalClose')?.addEventListener('click', closeMenuModal);
+  document.getElementById('modalCancelBtn')?.addEventListener('click', closeMenuModal);
 }
 
 function renderMenuMgmtList() {
-  const container = document.getElementById('menuMgmtList');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const items = getManagedMenuItems();
-
-  items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'menu-mgmt-item';
-    div.innerHTML = `
-      <span class="menu-mgmt-name">${item.name.ja}</span>
-      <span class="menu-mgmt-price">${item.price}</span>
-      <span class="menu-mgmt-time">${item.timeNum || ''}分</span>
-      <div class="menu-mgmt-actions">
-        <button class="edit-btn" data-id="${item.id}">編集</button>
-        <button class="delete-btn" data-id="${item.id}">削除</button>
-      </div>
-    `;
-
+  const c = document.getElementById('menuMgmtList');
+  if (!c) return; c.innerHTML = '';
+  getManagedMenuItems().forEach(item => {
+    const div = document.createElement('div'); div.className = 'menu-mgmt-item';
+    div.innerHTML = `<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.timeNum||''}分</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
     div.querySelector('.edit-btn').addEventListener('click', () => openMenuModal(item));
-    div.querySelector('.delete-btn').addEventListener('click', () => deleteMenuItem(item.id));
-
-    container.appendChild(div);
+    div.querySelector('.delete-btn').addEventListener('click', () => { if (!confirm('削除しますか？')) return; saveManagedMenuItems(getManagedMenuItems().filter(x => x.id !== item.id)); renderMenuMgmtList(); showToast('削除しました'); });
+    c.appendChild(div);
   });
 }
 
 function openMenuModal(item) {
   const modal = document.getElementById('menuModal');
-  const title = document.getElementById('modalTitle');
-
   if (item) {
-    title.textContent = 'メニュー編集';
+    document.getElementById('modalTitle').textContent = 'メニュー編集';
     document.getElementById('editMenuId').value = item.id;
-    document.getElementById('editNameJa').value = item.name.ja || '';
-    document.getElementById('editNameEn').value = item.name.en || '';
-    document.getElementById('editNameZh').value = item.name.zh || '';
-    document.getElementById('editPrice').value = item.priceNum || 0;
-    document.getElementById('editTime').value = item.timeNum || 0;
-    document.getElementById('editDescJa').value = item.desc.ja || '';
-    document.getElementById('editDescEn').value = item.desc.en || '';
-    document.getElementById('editDescZh').value = item.desc.zh || '';
-  } else {
-    title.textContent = '新規メニュー追加';
-    document.getElementById('editMenuId').value = '';
-    document.getElementById('menuForm').reset();
-  }
-
+    document.getElementById('editNameJa').value = item.name.ja||''; document.getElementById('editNameEn').value = item.name.en||''; document.getElementById('editNameZh').value = item.name.zh||'';
+    document.getElementById('editPrice').value = item.priceNum||0; document.getElementById('editTime').value = item.timeNum||0;
+    document.getElementById('editDescJa').value = item.desc.ja||''; document.getElementById('editDescEn').value = item.desc.en||''; document.getElementById('editDescZh').value = item.desc.zh||'';
+  } else { document.getElementById('modalTitle').textContent = '新規メニュー'; document.getElementById('editMenuId').value = ''; document.getElementById('menuForm').reset(); }
   modal.classList.add('open');
 }
-
-function closeMenuModal() {
-  document.getElementById('menuModal').classList.remove('open');
-}
+function closeMenuModal() { document.getElementById('menuModal').classList.remove('open'); }
 
 function saveMenuFromModal() {
   const id = document.getElementById('editMenuId').value;
-  const priceNum = parseInt(document.getElementById('editPrice').value) || 0;
-  const timeNum = parseInt(document.getElementById('editTime').value) || 0;
-
-  const menuItem = {
-    id: id || 'menu-' + Date.now(),
-    name: {
-      ja: document.getElementById('editNameJa').value.trim(),
-      en: document.getElementById('editNameEn').value.trim(),
-      zh: document.getElementById('editNameZh').value.trim()
-    },
-    price: '$' + priceNum,
-    priceNum: priceNum,
-    desc: {
-      ja: document.getElementById('editDescJa').value.trim(),
-      en: document.getElementById('editDescEn').value.trim(),
-      zh: document.getElementById('editDescZh').value.trim()
-    },
-    time: {
-      ja: `約${timeNum}分`,
-      en: `~${timeNum} min`,
-      zh: `约${timeNum}分钟`
-    },
-    timeNum: timeNum
-  };
-
-  const items = getManagedMenuItems();
-  const existingIdx = items.findIndex(item => item.id === id);
-
-  if (existingIdx >= 0) {
-    items[existingIdx] = menuItem;
-  } else {
-    items.push(menuItem);
-  }
-
-  saveManagedMenuItems(items);
-  renderMenuMgmtList();
-  closeMenuModal();
-  showToast(existingIdx >= 0 ? 'メニューを更新しました' : '新規メニューを追加しました');
+  const pn = parseInt(document.getElementById('editPrice').value)||0;
+  const tn = parseInt(document.getElementById('editTime').value)||0;
+  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:'$'+pn, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${tn}分`,en:`~${tn} min`,zh:`约${tn}分钟`}, timeNum:tn };
+  const items = getManagedMenuItems(); const idx = items.findIndex(x => x.id === id);
+  if (idx >= 0) items[idx] = mi; else items.push(mi);
+  saveManagedMenuItems(items); renderMenuMgmtList(); closeMenuModal(); showToast(idx >= 0 ? '更新しました' : '追加しました');
 }
 
-function deleteMenuItem(id) {
-  if (!confirm('このメニューを削除しますか？')) return;
-
-  const items = getManagedMenuItems().filter(item => item.id !== id);
-  saveManagedMenuItems(items);
-  renderMenuMgmtList();
-  showToast('メニューを削除しました');
-}
-
-// --- Photo Management ---
 function initPhotoManagement() {
-  const photoUpload = document.getElementById('photoUpload');
-  const resetBtn = document.getElementById('resetPhotoBtn');
   const previewImg = document.getElementById('currentPhoto');
-
-  // Load saved photo
   const siteData = getSiteData();
-  if (siteData.profilePhoto && previewImg) {
-    previewImg.src = siteData.profilePhoto;
-  }
-
-  if (photoUpload) {
-    photoUpload.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target.result;
-        if (previewImg) previewImg.src = dataUrl;
-
-        const data = getSiteData();
-        data.profilePhoto = dataUrl;
-        saveSiteData(data);
-        showToast('写真を更新しました');
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (previewImg) previewImg.src = 'stylist.jpg';
-      const data = getSiteData();
-      delete data.profilePhoto;
-      saveSiteData(data);
-      showToast('デフォルトに戻しました');
-    });
-  }
-}
-
-// --- Toast ---
-function showToast(message) {
-  // Remove existing toast
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = message;
-  document.body.appendChild(toast);
-
-  requestAnimationFrame(() => {
-    toast.classList.add('show');
+  if (siteData.profilePhoto && previewImg) previewImg.src = siteData.profilePhoto;
+  document.getElementById('photoUpload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { if (previewImg) previewImg.src = ev.target.result; const d = getSiteData(); d.profilePhoto = ev.target.result; saveSiteData(d); showToast('写真を更新しました'); };
+    reader.readAsDataURL(file);
   });
-
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
-  }, 2500);
+  document.getElementById('resetPhotoBtn')?.addEventListener('click', () => { if (previewImg) previewImg.src = 'stylist.jpg'; const d = getSiteData(); delete d.profilePhoto; saveSiteData(d); showToast('デフォルトに戻しました'); });
 }
+
+// ==========================================
+// Toast
+// ==========================================
+function showToast(message) {
+  const existing = document.querySelector('.toast'); if (existing) existing.remove();
+  const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2500);
+}
+
+// Resize handler
+let resizeTimer;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => initCharts(), 200); });
