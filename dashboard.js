@@ -915,7 +915,7 @@ function renderMenuMgmtList() {
   }
   items.forEach(item => {
     const div = document.createElement('div'); div.className = 'menu-mgmt-item';
-    div.innerHTML = `<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.timeNum||''}分</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
+    div.innerHTML = `<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.time?.ja || (item.timeNum||'')+'分'}</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
     div.querySelector('.edit-btn').addEventListener('click', () => openMenuModal(item));
     div.querySelector('.delete-btn').addEventListener('click', () => { if (!confirm('削除しますか？')) return; saveManagedMenuItems(getManagedMenuItems().filter(x => x.id !== item.id)); renderMenuMgmtList(); showToast('削除しました'); });
     c.appendChild(div);
@@ -928,7 +928,9 @@ function openMenuModal(item) {
     document.getElementById('modalTitle').textContent = 'メニュー編集';
     document.getElementById('editMenuId').value = item.id;
     document.getElementById('editNameJa').value = item.name.ja||''; document.getElementById('editNameEn').value = item.name.en||''; document.getElementById('editNameZh').value = item.name.zh||'';
-    document.getElementById('editPrice').value = (item.price||'').replace(/^\$/, '') || item.priceNum||0; document.getElementById('editTime').value = item.timeNum||0;
+    document.getElementById('editPrice').value = (item.price||'').replace(/^\$/, '') || item.priceNum||0;
+    const timeDisplay = (item.time?.ja || '').replace(/^約/, '').replace(/分$/, '') || item.timeNum||0;
+    document.getElementById('editTime').value = timeDisplay;
     document.getElementById('editDescJa').value = item.desc.ja||''; document.getElementById('editDescEn').value = item.desc.en||''; document.getElementById('editDescZh').value = item.desc.zh||'';
   } else { document.getElementById('modalTitle').textContent = '新規メニュー'; document.getElementById('editMenuId').value = ''; document.getElementById('menuForm').reset(); }
   modal.classList.add('open');
@@ -941,8 +943,10 @@ function saveMenuFromModal() {
   const priceStr = priceInput.replace(/^\$/, '');
   const pn = parseInt(priceStr.replace(/[〜~].*/,'')) || 0;
   const displayPrice = '$' + priceStr;
-  const tn = parseInt(document.getElementById('editTime').value)||0;
-  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:displayPrice, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${tn}分`,en:`~${tn} min`,zh:`约${tn}分钟`}, timeNum:tn };
+  const timeInput = document.getElementById('editTime').value.trim();
+  const timeStr = timeInput.replace(/分$/, '');
+  const tn = parseInt(timeStr.replace(/[〜~].*/,'')) || 0;
+  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:displayPrice, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${timeStr}分`,en:`~${timeStr} min`,zh:`约${timeStr}分钟`}, timeNum:tn };
   const items = getManagedMenuItems(); const idx = items.findIndex(x => x.id === id);
   if (idx < 0 && items.length >= MAX_MENU_ITEMS) {
     showToast(`メニューは最大${MAX_MENU_ITEMS}件までです`); return;
