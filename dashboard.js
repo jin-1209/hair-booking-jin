@@ -10,12 +10,12 @@ function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); 
 
 // --- Default Data ---
 const DEFAULT_MENU_ITEMS = [
-  { id:'cut', name:{ja:'カット',en:'Haircut',zh:'剪发'}, price:'$60', priceNum:60, desc:{ja:'骨格診断に基づいた似合わせカット。',en:'Personalized cut based on facial structure.',zh:'根据面部骨骼诊断打造发型。'}, time:{ja:'約60分',en:'~60 min',zh:'约60分钟'}, timeNum:60 },
-  { id:'cut-color', name:{ja:'カット + カラー',en:'Cut + Color',zh:'剪发 + 染发'}, price:'$120', priceNum:120, desc:{ja:'カットとカラーのセットメニュー。',en:'Cut and color set menu.',zh:'剪发与染发套餐。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
-  { id:'color', name:{ja:'カラー',en:'Color',zh:'染发'}, price:'$80', priceNum:80, desc:{ja:'イルミナカラー等、ダメージレスな薬剤を使用。',en:'Low-damage formulas like Illumina Color.',zh:'使用低损伤染发剂。'}, time:{ja:'約90分',en:'~90 min',zh:'约90分钟'}, timeNum:90 },
-  { id:'perm', name:{ja:'パーマ',en:'Perm',zh:'烫发'}, price:'$90', priceNum:90, desc:{ja:'デジタルパーマで柔らかいカールを実現。',en:'Soft curls with digital perm.',zh:'数码烫打造柔软卷发。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
-  { id:'treatment', name:{ja:'トリートメント',en:'Treatment',zh:'护理'}, price:'$50', priceNum:50, desc:{ja:'TOKIOトリートメントで髪の内部から補修。',en:'TOKIO treatment repairs hair from within.',zh:'TOKIO护理从内部修复秀发。'}, time:{ja:'約45分',en:'~45 min',zh:'约45分钟'}, timeNum:45 },
-  { id:'head-spa', name:{ja:'ヘッドスパ',en:'Head Spa',zh:'头皮SPA'}, price:'$40', priceNum:40, desc:{ja:'頭皮の状態に合わせた本格ヘッドスパ。',en:'Professional head spa customized to your scalp.',zh:'根据头皮状况定制SPA。'}, time:{ja:'約40分',en:'~40 min',zh:'约40分钟'}, timeNum:40 }
+  { id:'cut', name:{ja:'カット',en:'Haircut',zh:'剪发'}, price:'$60〜', priceNum:60, desc:{ja:'骨格診断に基づいた似合わせカット。',en:'Personalized cut based on facial structure.',zh:'根据面部骨骼诊断打造发型。'}, time:{ja:'約60分',en:'~60 min',zh:'约60分钟'}, timeNum:60 },
+  { id:'cut-color', name:{ja:'カット + カラー',en:'Cut + Color',zh:'剪发 + 染发'}, price:'$120〜', priceNum:120, desc:{ja:'カットとカラーのセットメニュー。',en:'Cut and color set menu.',zh:'剪发与染发套餐。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
+  { id:'color', name:{ja:'カラー',en:'Color',zh:'染发'}, price:'$100〜', priceNum:100, desc:{ja:'イルミナカラー等、ダメージレスな薬剤を使用。',en:'Low-damage formulas like Illumina Color.',zh:'使用低损伤染发剂。'}, time:{ja:'約90分',en:'~90 min',zh:'约90分钟'}, timeNum:90 },
+  { id:'perm', name:{ja:'パーマ',en:'Perm',zh:'烫发'}, price:'$90〜', priceNum:90, desc:{ja:'デジタルパーマで柔らかいカールを実現。',en:'Soft curls with digital perm.',zh:'数码烫打造柔软卷发。'}, time:{ja:'約120分',en:'~120 min',zh:'约120分钟'}, timeNum:120 },
+  { id:'treatment', name:{ja:'トリートメント',en:'Treatment',zh:'护理'}, price:'$50〜', priceNum:50, desc:{ja:'TOKIOトリートメントで髪の内部から補修。',en:'TOKIO treatment repairs hair from within.',zh:'TOKIO护理从内部修复秀发。'}, time:{ja:'約45分',en:'~45 min',zh:'约45分钟'}, timeNum:45 },
+  { id:'head-spa', name:{ja:'ヘッドスパ',en:'Head Spa',zh:'头皮SPA'}, price:'$40〜', priceNum:40, desc:{ja:'頭皮の状態に合わせた本格ヘッドスパ。',en:'Professional head spa customized to your scalp.',zh:'根据头皮状况定制SPA。'}, time:{ja:'約40分',en:'~40 min',zh:'约40分钟'}, timeNum:40 }
 ];
 
 const DEMO_BOOKINGS = [
@@ -928,7 +928,7 @@ function openMenuModal(item) {
     document.getElementById('modalTitle').textContent = 'メニュー編集';
     document.getElementById('editMenuId').value = item.id;
     document.getElementById('editNameJa').value = item.name.ja||''; document.getElementById('editNameEn').value = item.name.en||''; document.getElementById('editNameZh').value = item.name.zh||'';
-    document.getElementById('editPrice').value = item.priceNum||0; document.getElementById('editTime').value = item.timeNum||0;
+    document.getElementById('editPrice').value = (item.price||'').replace(/^\$/, '') || item.priceNum||0; document.getElementById('editTime').value = item.timeNum||0;
     document.getElementById('editDescJa').value = item.desc.ja||''; document.getElementById('editDescEn').value = item.desc.en||''; document.getElementById('editDescZh').value = item.desc.zh||'';
   } else { document.getElementById('modalTitle').textContent = '新規メニュー'; document.getElementById('editMenuId').value = ''; document.getElementById('menuForm').reset(); }
   modal.classList.add('open');
@@ -937,9 +937,12 @@ function closeMenuModal() { document.getElementById('menuModal').classList.remov
 
 function saveMenuFromModal() {
   const id = document.getElementById('editMenuId').value;
-  const pn = parseInt(document.getElementById('editPrice').value)||0;
+  const priceInput = document.getElementById('editPrice').value.trim();
+  const priceStr = priceInput.replace(/^\$/, '');
+  const pn = parseInt(priceStr.replace(/[〜~].*/,'')) || 0;
+  const displayPrice = '$' + priceStr;
   const tn = parseInt(document.getElementById('editTime').value)||0;
-  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:'$'+pn, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${tn}分`,en:`~${tn} min`,zh:`约${tn}分钟`}, timeNum:tn };
+  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:displayPrice, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${tn}分`,en:`~${tn} min`,zh:`约${tn}分钟`}, timeNum:tn };
   const items = getManagedMenuItems(); const idx = items.findIndex(x => x.id === id);
   if (idx < 0 && items.length >= MAX_MENU_ITEMS) {
     showToast(`メニューは最大${MAX_MENU_ITEMS}件までです`); return;
