@@ -10,7 +10,7 @@
 // https://www.emailjs.com/ で無料アカウント作成
 // ==========================================
 const EMAIL_CONFIG = {
-  publicKey: 'el6-KagF_HZD5D1qT',
+  publicKey: 'HxdlNtOf7gTBQlq1h',
   serviceId: 'service_jyv8se9',
   // お客様への予約確認メール用テンプレートID
   customerTemplateId: 'template_np6xm6n',
@@ -1024,45 +1024,76 @@ function handleSubmit(e) {
 // ==========================================
 // Email Notification (EmailJS)
 // ==========================================
+let emailjsInitialized = false;
+
+function initEmailJS() {
+  if (emailjsInitialized) return true;
+  if (typeof emailjs === 'undefined') {
+    console.warn('EmailJS SDK が読み込まれていません');
+    return false;
+  }
+  try {
+    emailjs.init({ publicKey: EMAIL_CONFIG.publicKey });
+    emailjsInitialized = true;
+    console.log('EmailJS initialized successfully');
+    return true;
+  } catch (err) {
+    console.error('EmailJS init error:', err);
+    return false;
+  }
+}
+
 function sendBookingEmails(data) {
   // EmailJSが読み込まれていない場合はスキップ
-  if (typeof emailjs === 'undefined') return;
+  if (!initEmailJS()) return;
 
   // お客様へ予約確認メール送信
   if (data.customerEmail && EMAIL_CONFIG.customerTemplateId) {
-    emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.customerTemplateId, {
-      to_name: data.customerName,
-      to_email: data.customerEmail,
-      menu: data.menuName,
-      date: data.dateStr,
-      time: data.time,
-      price: data.price,
-      salon_name: EMAIL_CONFIG.salonName,
-      salon_address: EMAIL_CONFIG.salonAddress,
-      note: data.note || 'none'
-    }).then(() => {
-      console.log('Customer confirmation email sent successfully');
+    emailjs.send(
+      EMAIL_CONFIG.serviceId,
+      EMAIL_CONFIG.customerTemplateId,
+      {
+        to_name: data.customerName,
+        to_email: data.customerEmail,
+        menu: data.menuName,
+        date: data.dateStr,
+        time: data.time,
+        price: data.price,
+        salon_name: EMAIL_CONFIG.salonName,
+        salon_address: EMAIL_CONFIG.salonAddress,
+        note: data.note || 'なし'
+      },
+      { publicKey: EMAIL_CONFIG.publicKey }
+    ).then(() => {
+      console.log('お客様への確認メール送信成功');
     }).catch((err) => {
-      console.error('Customer email error:', err);
+      console.error('お客様メール送信エラー:', err);
+      console.error('Error status:', err?.status, 'Error text:', err?.text);
     });
   }
 
   // 美容師へ新規予約通知メール送信
   if (EMAIL_CONFIG.stylistEmail && EMAIL_CONFIG.stylistTemplateId) {
-    emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.stylistTemplateId, {
-      to_email: EMAIL_CONFIG.stylistEmail,
-      customer_name: data.customerName,
-      customer_phone: data.customerPhone,
-      customer_email: data.customerEmail || 'not provided',
-      menu: data.menuName,
-      date: data.dateStr,
-      time: data.time,
-      price: data.price,
-      note: data.note || 'none'
-    }).then(() => {
-      console.log('Stylist notification email sent successfully');
+    emailjs.send(
+      EMAIL_CONFIG.serviceId,
+      EMAIL_CONFIG.stylistTemplateId,
+      {
+        to_email: EMAIL_CONFIG.stylistEmail,
+        customer_name: data.customerName,
+        customer_phone: data.customerPhone,
+        customer_email: data.customerEmail || '未入力',
+        menu: data.menuName,
+        date: data.dateStr,
+        time: data.time,
+        price: data.price,
+        note: data.note || 'なし'
+      },
+      { publicKey: EMAIL_CONFIG.publicKey }
+    ).then(() => {
+      console.log('美容師への通知メール送信成功');
     }).catch((err) => {
-      console.error('Stylist email error:', err);
+      console.error('美容師メール送信エラー:', err);
+      console.error('Error status:', err?.status, 'Error text:', err?.text);
     });
   }
 }
