@@ -913,9 +913,69 @@ function renderMenuMgmtList() {
       addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = '';
     }
   }
-  items.forEach(item => {
+
+  let dragSrcIndex = null;
+
+  items.forEach((item, index) => {
     const div = document.createElement('div'); div.className = 'menu-mgmt-item';
-    div.innerHTML = `<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.time?.ja || (item.timeNum||'')+'分'}</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
+    div.setAttribute('draggable', 'true');
+    div.dataset.index = index;
+
+    // ドラッグハンドル
+    const handle = `<span class="menu-drag-handle" title="ドラッグして並び替え">⠿</span>`;
+
+    // 上下ボタン
+    const upDisabled = index === 0 ? ' disabled' : '';
+    const downDisabled = index === items.length - 1 ? ' disabled' : '';
+    const orderBtns = `<div class="menu-order-btns"><button class="menu-order-btn move-up-btn"${upDisabled}>▲</button><button class="menu-order-btn move-down-btn"${downDisabled}>▼</button></div>`;
+
+    div.innerHTML = `${handle}${orderBtns}<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.time?.ja || (item.timeNum||'')+'分'}</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
+
+    // 上下ボタンイベント
+    div.querySelector('.move-up-btn')?.addEventListener('click', () => {
+      if (index <= 0) return;
+      const arr = getManagedMenuItems();
+      [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+      saveManagedMenuItems(arr); renderMenuMgmtList(); showToast('順番を変更しました');
+    });
+    div.querySelector('.move-down-btn')?.addEventListener('click', () => {
+      if (index >= items.length - 1) return;
+      const arr = getManagedMenuItems();
+      [arr[index], arr[index + 1]] = [arr[index + 1], arr[index]];
+      saveManagedMenuItems(arr); renderMenuMgmtList(); showToast('順番を変更しました');
+    });
+
+    // ドラッグ&ドロップイベント
+    div.addEventListener('dragstart', (e) => {
+      dragSrcIndex = index;
+      div.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', index);
+    });
+    div.addEventListener('dragend', () => {
+      div.classList.remove('dragging');
+      c.querySelectorAll('.menu-mgmt-item').forEach(el => el.classList.remove('drag-over'));
+    });
+    div.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      div.classList.add('drag-over');
+    });
+    div.addEventListener('dragleave', () => {
+      div.classList.remove('drag-over');
+    });
+    div.addEventListener('drop', (e) => {
+      e.preventDefault();
+      div.classList.remove('drag-over');
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIndex = index;
+      if (fromIndex === toIndex) return;
+      const arr = getManagedMenuItems();
+      const [moved] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      saveManagedMenuItems(arr); renderMenuMgmtList(); showToast('順番を変更しました');
+    });
+
     div.querySelector('.edit-btn').addEventListener('click', () => openMenuModal(item));
     div.querySelector('.delete-btn').addEventListener('click', () => { if (!confirm('削除しますか？')) return; saveManagedMenuItems(getManagedMenuItems().filter(x => x.id !== item.id)); renderMenuMgmtList(); showToast('削除しました'); });
     c.appendChild(div);

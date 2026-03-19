@@ -1033,16 +1033,81 @@ img { max-width:100%; display:block; }
 .menu-mgmt-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 14px 16px;
   background: var(--color-glass);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+  cursor: default;
 }
 
 .menu-mgmt-item:hover {
   border-color: var(--color-border-hover);
+}
+
+.menu-mgmt-item.dragging {
+  opacity: 0.4;
+  border-color: var(--color-accent);
+  transform: scale(0.98);
+}
+
+.menu-mgmt-item.drag-over {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
+}
+
+.menu-drag-handle {
+  cursor: grab;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  padding: 4px 2px;
+  line-height: 1;
+  user-select: none;
+  transition: color 0.2s;
+  flex-shrink: 0;
+  letter-spacing: -1px;
+}
+
+.menu-drag-handle:hover {
+  color: var(--color-accent);
+}
+
+.menu-drag-handle:active {
+  cursor: grabbing;
+}
+
+.menu-order-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.menu-order-btn {
+  width: 22px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  line-height: 1;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.menu-order-btn:hover {
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent);
+  background: var(--color-accent-glow);
+}
+
+.menu-order-btn:disabled {
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 .menu-mgmt-name {
