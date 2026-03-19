@@ -5,6 +5,26 @@
    ======================================== */
 
 // ==========================================
+// EmailJS Configuration
+// EmailJSアカウント作成後、以下の値を設定してください
+// https://www.emailjs.com/ で無料アカウント作成
+// ==========================================
+const EMAIL_CONFIG = {
+  publicKey: 'el6-KagF_HZD5D1qT',
+  serviceId: 'service_jyv8se9',
+  // お客様への予約確認メール用テンプレートID
+  customerTemplateId: 'template_np6xm6n',
+  // 美容師への新規予約通知メール用テンプレートID
+  stylistTemplateId: 'template_cck0a6j',
+  // 美容師のメールアドレス
+  stylistEmail: 'yj591209@gmail.com',
+  // サロン名
+  salonName: 'JIN — Beauty Stylist at TOKI+LIM',
+  // サロン住所
+  salonAddress: '420 North Bridge Road, #03-06, Singapore 188727'
+};
+
+// ==========================================
 // Translations
 // ==========================================
 const TRANSLATIONS = {
@@ -926,6 +946,8 @@ function handleSubmit(e) {
 
   const name = document.getElementById('customerName').value.trim();
   const phone = document.getElementById('customerPhone').value.trim();
+  const email = document.getElementById('customerEmail')?.value.trim() || '';
+  const note = document.getElementById('customerNote')?.value.trim() || '';
 
   if (!name || !phone) {
     alert(t('alert_required'));
@@ -933,6 +955,7 @@ function handleSubmit(e) {
   }
 
   let dateStr = '';
+  let dateISO = '';
   if (state.selectedDate) {
     const df = TRANSLATIONS[state.lang].date_format;
     dateStr = df(
@@ -940,6 +963,45 @@ function handleSubmit(e) {
       state.selectedDate.getMonth() + 1,
       state.selectedDate.getDate()
     );
+    dateISO = `${state.selectedDate.getFullYear()}-${String(state.selectedDate.getMonth() + 1).padStart(2, '0')}-${String(state.selectedDate.getDate()).padStart(2, '0')}`;
+  }
+
+  const menuName = menuText(state.selectedMenu, 'name');
+  const menuPrice = state.selectedMenu.price;
+  const menuPriceNum = state.selectedMenu.priceNum || 0;
+
+  // Save booking to shared salonBookings (for dashboard integration)
+  try {
+    const bookings = JSON.parse(localStorage.getItem('salonBookings') || '[]');
+    const newBooking = {
+      id: 'B' + String(bookings.length + 1).padStart(3, '0'),
+      client: name,
+      phone: phone,
+      email: email,
+      menu: menuName,
+      date: dateISO,
+      time: state.selectedTime || '',
+      price: menuPriceNum,
+      note: note,
+      status: 'pending'
+    };
+    bookings.push(newBooking);
+    localStorage.setItem('salonBookings', JSON.stringify(bookings));
+  } catch(e) {}
+
+  // Send email notifications via EmailJS
+  if (EMAIL_CONFIG.publicKey && EMAIL_CONFIG.serviceId) {
+    sendBookingEmails({
+      customerName: name,
+      customerPhone: phone,
+      customerEmail: email,
+      menuName: menuName,
+      dateStr: dateStr,
+      dateISO: dateISO,
+      time: state.selectedTime || '',
+      price: menuPrice,
+      note: note
+    });
   }
 
   const honorific = t('modal_honorific');
@@ -948,14 +1010,61 @@ function handleSubmit(e) {
   const modalText = document.getElementById('modalText');
   modalText.innerHTML = `
     <strong>${nameDisplay}</strong><br><br>
-    📋 ${menuText(state.selectedMenu, 'name')}<br>
+    📋 ${menuName}<br>
     📅 ${dateStr} ${state.selectedTime}<br>
-    💰 ${state.selectedMenu.price}<br><br>
+    💰 ${menuPrice}<br><br>
     ${t('modal_confirm_msg')}<br>
     ${t('modal_phone_label')}: ${phone}
+    ${email ? '<br>📧 ' + email : ''}
   `;
 
   document.getElementById('confirmModal').classList.add('active');
+}
+
+// ==========================================
+// Email Notification (EmailJS)
+// ==========================================
+function sendBookingEmails(data) {
+  // EmailJSが読み込まれていない場合はスキップ
+  if (typeof emailjs === 'undefined') return;
+
+  // お客様へ予約確認メール送信
+  if (data.customerEmail && EMAIL_CONFIG.customerTemplateId) {
+    emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.customerTemplateId, {
+      to_name: data.customerName,
+      to_email: data.customerEmail,
+      menu: data.menuName,
+      date: data.dateStr,
+      time: data.time,
+      price: data.price,
+      salon_name: EMAIL_CONFIG.salonName,
+      salon_address: EMAIL_CONFIG.salonAddress,
+      note: data.note || 'none'
+    }).then(() => {
+      console.log('Customer confirmation email sent successfully');
+    }).catch((err) => {
+      console.error('Customer email error:', err);
+    });
+  }
+
+  // 美容師へ新規予約通知メール送信
+  if (EMAIL_CONFIG.stylistEmail && EMAIL_CONFIG.stylistTemplateId) {
+    emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.stylistTemplateId, {
+      to_email: EMAIL_CONFIG.stylistEmail,
+      customer_name: data.customerName,
+      customer_phone: data.customerPhone,
+      customer_email: data.customerEmail || 'not provided',
+      menu: data.menuName,
+      date: data.dateStr,
+      time: data.time,
+      price: data.price,
+      note: data.note || 'none'
+    }).then(() => {
+      console.log('Stylist notification email sent successfully');
+    }).catch((err) => {
+      console.error('Stylist email error:', err);
+    });
+  }
 }
 
 // ==========================================
@@ -1326,11 +1435,21 @@ function renderQuickCalendar() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Get custom holidays from localStorage (set by dashboard)
-  let customHolidays = [];
+  // Get closed days from dashboard shift settings
+  let closedDays = [2]; // default: Tuesday
   try {
-    const saved = localStorage.getItem('salonHolidays');
-    if (saved) customHolidays = JSON.parse(saved);
+    const shiftSettings = localStorage.getItem('salonShiftSettings');
+    if (shiftSettings) {
+      const parsed = JSON.parse(shiftSettings);
+      if (parsed.closedDays) closedDays = parsed.closedDays;
+    }
+  } catch(e) {}
+
+  // Get individual day-off from dashboard shift calendar
+  let individualShifts = {};
+  try {
+    const shifts = localStorage.getItem('salonShifts');
+    if (shifts) individualShifts = JSON.parse(shifts);
   } catch(e) {}
 
   let html = '';
@@ -1346,14 +1465,15 @@ function renderQuickCalendar() {
     const isPast = date < today;
     const isToday = date.getTime() === today.getTime();
 
-    // Tuesday = 2 (定休日: 毎週火曜日)
-    const isTuesday = dayOfWeek === 2;
+    // Check if this day of week is a regular closed day
+    const isClosedDay = closedDays.includes(dayOfWeek);
     
-    // Check custom holidays (format: "YYYY-MM-DD")
+    // Check individual shift (day off set in dashboard shift calendar)
     const dateStr = `${qcalYear}-${String(qcalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const isCustomHoliday = customHolidays.includes(dateStr);
+    const shiftData = individualShifts[dateStr];
+    const isIndividualOff = shiftData?.isOff || false;
     
-    const isHoliday = isTuesday || isCustomHoliday;
+    const isHoliday = (isClosedDay && !shiftData) || isIndividualOff;
 
     let cls = 'qcal-day';
     if (isToday) cls += ' today';

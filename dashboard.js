@@ -19,17 +19,28 @@ const DEFAULT_MENU_ITEMS = [
 ];
 
 const DEMO_BOOKINGS = [
-  { id:'B001', client:'佐藤 美咲', menu:'カット + カラー', date:'2026-03-16', time:'10:00', price:120, status:'confirmed' },
-  { id:'B002', client:'田中 花子', menu:'カット', date:'2026-03-16', time:'11:30', price:60, status:'confirmed' },
-  { id:'B003', client:'鈴木 一郎', menu:'カット', date:'2026-03-16', time:'13:00', price:60, status:'completed' },
-  { id:'B004', client:'高橋 めぐみ', menu:'カラー', date:'2026-03-16', time:'14:00', price:80, status:'confirmed' },
-  { id:'B005', client:'伊藤 さくら', menu:'パーマ', date:'2026-03-16', time:'15:30', price:90, status:'pending' },
-  { id:'B006', client:'渡辺 大輔', menu:'カット + カラー', date:'2026-03-16', time:'17:00', price:120, status:'confirmed' },
-  { id:'B007', client:'山田 陽子', menu:'トリートメント', date:'2026-03-17', time:'10:00', price:50, status:'confirmed' },
-  { id:'B008', client:'中村 翔太', menu:'カット', date:'2026-03-17', time:'11:00', price:60, status:'pending' },
-  { id:'B009', client:'小林 真理', menu:'ヘッドスパ', date:'2026-03-15', time:'14:00', price:40, status:'completed' },
-  { id:'B010', client:'加藤 美紀', menu:'カット + カラー', date:'2026-03-14', time:'10:00', price:120, status:'cancelled' }
+  { id:'B001', client:'佐藤 美咲', phone:'090-1234-5678', menu:'カット + カラー', date:'2026-03-16', time:'10:00', price:120, status:'confirmed' },
+  { id:'B002', client:'田中 花子', phone:'090-2345-6789', menu:'カット', date:'2026-03-16', time:'11:30', price:60, status:'confirmed' },
+  { id:'B003', client:'鈴木 一郎', phone:'090-3456-7890', menu:'カット', date:'2026-03-16', time:'13:00', price:60, status:'completed' },
+  { id:'B004', client:'高橋 めぐみ', phone:'090-4567-8901', menu:'カラー', date:'2026-03-16', time:'14:00', price:80, status:'confirmed' },
+  { id:'B005', client:'伊藤 さくら', phone:'090-5678-9012', menu:'パーマ', date:'2026-03-16', time:'15:30', price:90, status:'pending' },
+  { id:'B006', client:'渡辺 大輔', phone:'090-6789-0123', menu:'カット + カラー', date:'2026-03-16', time:'17:00', price:120, status:'confirmed' },
+  { id:'B007', client:'山田 陽子', phone:'', menu:'トリートメント', date:'2026-03-17', time:'10:00', price:50, status:'confirmed' },
+  { id:'B008', client:'中村 翔太', phone:'', menu:'カット', date:'2026-03-17', time:'11:00', price:60, status:'pending' },
+  { id:'B009', client:'小林 真理', phone:'', menu:'ヘッドスパ', date:'2026-03-15', time:'14:00', price:40, status:'completed' },
+  { id:'B010', client:'加藤 美紀', phone:'', menu:'カット + カラー', date:'2026-03-14', time:'10:00', price:120, status:'cancelled' }
 ];
+
+// --- Unified Booking Data ---
+function getBookings() { return loadData('salonBookings', DEMO_BOOKINGS); }
+function saveBookings(b) { saveData('salonBookings', b); }
+function addBooking(booking) {
+  const bookings = getBookings();
+  booking.id = 'B' + String(bookings.length + 1).padStart(3, '0');
+  bookings.push(booking);
+  saveBookings(bookings);
+  return booking;
+}
 
 const DEMO_CLIENTS = [
   { id:'c1', name:'佐藤 美咲', phone:'090-1234-5678', email:'sato@example.com', since:'2024-06', designations:12, tags:'髪質:細い,カラー:暖色系', visits:[{date:'2026-03-16',menu:'カット + カラー',price:120,note:'イルミナ8/NB使用'},{date:'2026-02-10',menu:'カット',price:60,note:''},{date:'2026-01-05',menu:'カラー',price:80,note:'トーンアップ'}], notes:{hair:'細い、柔らかい、猫っ毛',chem:'イルミナカラー 8/NB、OX 3%',pref:'前髪は眉下、量は軽めが好み',other:''} },
@@ -156,8 +167,14 @@ function setPageDate() {
 function renderOverviewTimeline() {
   const c = document.getElementById('overviewTimeline');
   if (!c) return;
-  const today = DEMO_BOOKINGS.filter(b => b.date === '2026-03-16');
-  c.innerHTML = today.map(b => `
+  const todayStr = new Date().toISOString().split('T')[0];
+  const bookings = getBookings();
+  const todayBookings = bookings.filter(b => b.date === todayStr);
+  if (todayBookings.length === 0) {
+    c.innerHTML = '<p class="empty-text">本日の予約はありません</p>';
+    return;
+  }
+  c.innerHTML = todayBookings.map(b => `
     <div class="tl-item">
       <span class="tl-time">${b.time}</span>
       <div class="tl-dot"></div>
@@ -169,7 +186,9 @@ function renderRecentBookings() {
   const c = document.getElementById('recentBookings');
   if (!c) return;
   const statusLabels = { confirmed:'確定', pending:'保留中', completed:'完了', cancelled:'キャンセル' };
-  c.innerHTML = DEMO_BOOKINGS.slice(0, 5).map(b => `
+  const bookings = getBookings();
+  const sorted = [...bookings].sort((a,b) => (b.date + b.time).localeCompare(a.date + a.time));
+  c.innerHTML = sorted.slice(0, 5).map(b => `
     <div class="recent-item">
       <div class="recent-avatar">${b.client[0]}</div>
       <div class="recent-info"><strong>${b.client}</strong><span>${b.menu} · ${b.date} ${b.time}</span></div>
@@ -184,7 +203,8 @@ function renderBookingsTable(filter, query) {
   const tb = document.getElementById('bookingsTableBody');
   if (!tb) return;
   const statusLabels = { confirmed:'確定', pending:'保留中', completed:'完了', cancelled:'キャンセル' };
-  let data = [...DEMO_BOOKINGS];
+  let data = [...getBookings()];
+  data.sort((a,b) => (b.date + b.time).localeCompare(a.date + a.time));
   if (filter && filter !== 'all') data = data.filter(b => b.status === filter);
   if (query) { const q = query.toLowerCase(); data = data.filter(b => b.client.toLowerCase().includes(q) || b.menu.toLowerCase().includes(q)); }
   tb.innerHTML = data.map(b => `
@@ -195,8 +215,21 @@ function renderBookingsTable(filter, query) {
       <td>${b.date} ${b.time}</td>
       <td>$${b.price}</td>
       <td><span class="status-badge st-${b.status}">${statusLabels[b.status]}</span></td>
-      <td><button class="action-btn" onclick="alert('機能実装予定')">詳細</button></td>
+      <td><button class="action-btn" onclick="changeBookingStatus('${b.id}')">${b.status === 'confirmed' ? '完了' : b.status === 'pending' ? '確定' : '詳細'}</button></td>
     </tr>`).join('');
+}
+
+function changeBookingStatus(bookingId) {
+  const bookings = getBookings();
+  const b = bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  if (b.status === 'pending') { b.status = 'confirmed'; showToast('予約を確定しました'); }
+  else if (b.status === 'confirmed') { b.status = 'completed'; showToast('施術完了にしました'); }
+  else { return; }
+  saveBookings(bookings);
+  renderBookingsTable();
+  renderRecentBookings();
+  renderOverviewTimeline();
 }
 
 function initSearch() {
@@ -303,19 +336,71 @@ function renderShiftCalendar() {
 // ==========================================
 // Client Management
 // ==========================================
-function getClients() { return loadData('salonClients', DEMO_CLIENTS); }
+function getClients() {
+  // Merge dashboard clients and mypage customers
+  const dashClients = loadData('salonClients', DEMO_CLIENTS);
+  
+  // Get mypage customers (phone-keyed object)
+  const mypageCustomers = loadData('salonCustomers', {});
+  
+  // Convert mypage customers to client format and add if not already in dashboard
+  Object.keys(mypageCustomers).forEach(phone => {
+    const mc = mypageCustomers[phone];
+    const exists = dashClients.some(c => c.phone === phone || c.phone === mc.phone);
+    if (!exists) {
+      dashClients.push({
+        id: 'mp-' + phone.replace(/[^0-9]/g, ''),
+        name: mc.name && mc.name !== '未設定' ? mc.name : phone,
+        phone: mc.phone || phone,
+        countryCode: mc.countryCode || '',
+        email: '',
+        since: new Date().toISOString().slice(0, 7),
+        designations: mc.visitCount || 0,
+        tags: 'マイページ登録',
+        visits: (mc.bookingHistory || []).map(bh => ({
+          date: bh.date || '',
+          menu: bh.menu || '',
+          price: bh.price || 0,
+          note: ''
+        })),
+        notes: { hair: '', chem: '', pref: '', other: '' },
+        points: mc.points || 0,
+        totalEarned: mc.totalEarned || 0,
+        mypageLinked: true
+      });
+    }
+  });
+  
+  return dashClients;
+}
+
 function saveClients(c) { saveData('salonClients', c); }
+
+// Also sync back to salonCustomers when editing a mypage-linked client
+function syncToMypageCustomer(client) {
+  if (!client.mypageLinked) return;
+  const customers = loadData('salonCustomers', {});
+  const phone = client.phone;
+  if (customers[phone]) {
+    customers[phone].name = client.name;
+    if (client.name === phone) customers[phone].name = '未設定';
+    saveData('salonCustomers', customers);
+  }
+}
+
 let currentClientId = null;
 
 function renderClients(query) {
   const grid = document.getElementById('clientsGrid');
   if (!grid) return;
   let clients = getClients();
-  if (query) { const q = query.toLowerCase(); clients = clients.filter(c => c.name.toLowerCase().includes(q) || (c.tags||'').toLowerCase().includes(q)); }
+  if (query) { const q = query.toLowerCase(); clients = clients.filter(c => c.name.toLowerCase().includes(q) || (c.tags||'').toLowerCase().includes(q) || (c.phone||'').includes(q)); }
 
   grid.innerHTML = clients.map(c => {
     const totalSpent = (c.visits||[]).reduce((s,v) => s + (v.price||0), 0);
     const lastVisit = (c.visits||[]).length > 0 ? c.visits[0].date : '—';
+    const pointsBadge = c.points ? `<span class="tag" style="background:#f0e6d4;color:#8B6914">🎁 ${c.points}pt</span>` : '';
+    const linkedBadge = c.mypageLinked ? '<span class="tag" style="background:#e8f5e9;color:#2e7d32">📱 マイページ</span>' : '';
     return `
     <div class="client-card" data-id="${c.id}">
       <div class="client-avatar">${c.name[0]}</div>
@@ -328,7 +413,7 @@ function renderClients(query) {
         </div>
         <span class="client-last">最終来店: ${lastVisit}</span>
       </div>
-      <div class="client-tags">${(c.tags||'').split(',').filter(t=>t).map(t => `<span class="tag">${t.trim()}</span>`).join('')}</div>
+      <div class="client-tags">${linkedBadge}${pointsBadge}${(c.tags||'').split(',').filter(t=>t).map(t => `<span class="tag">${t.trim()}</span>`).join('')}</div>
     </div>`;
   }).join('');
 
@@ -425,12 +510,23 @@ function saveClientFromForm() {
     designations: parseInt(document.getElementById('clientDesignations').value) || 0,
     tags: document.getElementById('clientTags').value.trim(),
     visits: existing?.visits || [],
-    notes: existing?.notes || { hair:'', chem:'', pref:'', other:'' }
+    notes: existing?.notes || { hair:'', chem:'', pref:'', other:'' },
+    points: existing?.points || 0,
+    totalEarned: existing?.totalEarned || 0,
+    mypageLinked: existing?.mypageLinked || false,
+    countryCode: existing?.countryCode || ''
   };
 
   if (existing) { Object.assign(existing, client); }
   else { clients.push(client); }
-  saveClients(clients);
+  
+  // Filter out mypage-merged clients before saving to salonClients
+  const dashOnly = clients.filter(c => !c.mypageLinked);
+  saveClients(dashOnly);
+  
+  // Sync back to mypage if linked
+  syncToMypageCustomer(client);
+  
   renderClients();
   closeClientModal();
   showToast(id ? '顧客情報を更新しました' : '新規顧客を登録しました');
@@ -801,10 +897,23 @@ function initMenuManagement() {
   document.getElementById('modalCancelBtn')?.addEventListener('click', closeMenuModal);
 }
 
+const MAX_MENU_ITEMS = 20;
+
 function renderMenuMgmtList() {
   const c = document.getElementById('menuMgmtList');
   if (!c) return; c.innerHTML = '';
-  getManagedMenuItems().forEach(item => {
+  const items = getManagedMenuItems();
+  const countLabel = document.getElementById('menuCountLabel');
+  if (countLabel) countLabel.textContent = `${items.length} / ${MAX_MENU_ITEMS}`;
+  const addBtn = document.getElementById('addMenuBtn');
+  if (addBtn) {
+    if (items.length >= MAX_MENU_ITEMS) {
+      addBtn.disabled = true; addBtn.style.opacity = '0.5'; addBtn.style.cursor = 'not-allowed'; addBtn.title = `メニュー上限（${MAX_MENU_ITEMS}件）に達しています`;
+    } else {
+      addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = '';
+    }
+  }
+  items.forEach(item => {
     const div = document.createElement('div'); div.className = 'menu-mgmt-item';
     div.innerHTML = `<span class="menu-mgmt-name">${item.name.ja}</span><span class="menu-mgmt-price">${item.price}</span><span class="menu-mgmt-time">${item.timeNum||''}分</span><div class="menu-mgmt-actions"><button class="edit-btn">編集</button><button class="delete-btn">削除</button></div>`;
     div.querySelector('.edit-btn').addEventListener('click', () => openMenuModal(item));
@@ -832,6 +941,9 @@ function saveMenuFromModal() {
   const tn = parseInt(document.getElementById('editTime').value)||0;
   const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:'$'+pn, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${tn}分`,en:`~${tn} min`,zh:`约${tn}分钟`}, timeNum:tn };
   const items = getManagedMenuItems(); const idx = items.findIndex(x => x.id === id);
+  if (idx < 0 && items.length >= MAX_MENU_ITEMS) {
+    showToast(`メニューは最大${MAX_MENU_ITEMS}件までです`); return;
+  }
   if (idx >= 0) items[idx] = mi; else items.push(mi);
   saveManagedMenuItems(items); renderMenuMgmtList(); closeMenuModal(); showToast(idx >= 0 ? '更新しました' : '追加しました');
 }

@@ -90,6 +90,23 @@ function addBookingRecord(phone, booking) {
     price: booking.price || ''
   });
   saveAllCustomers(customers);
+
+  // Also write to shared salonBookings for dashboard
+  try {
+    const bookings = JSON.parse(localStorage.getItem('salonBookings') || '[]');
+    const newBooking = {
+      id: 'B' + String(bookings.length + 1).padStart(3, '0'),
+      client: customer.name && customer.name !== '未設定' ? customer.name : phone,
+      phone: phone,
+      menu: booking.menu || '',
+      date: booking.date || new Date().toISOString().split('T')[0],
+      time: booking.time || '',
+      price: parseInt(booking.price) || 0,
+      status: 'confirmed'
+    };
+    bookings.push(newBooking);
+    localStorage.setItem('salonBookings', JSON.stringify(bookings));
+  } catch(e) {}
 }
 
 // ====== Login / Logout ======
