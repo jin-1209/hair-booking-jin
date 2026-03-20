@@ -1607,6 +1607,14 @@ img { max-width:100%; display:block; }
   margin-top: 2px;
 }
 
+.shift-hours {
+  font-size: 0.5rem;
+  color: var(--color-accent);
+  margin-top: 1px;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
 .day-checkboxes {
   display: flex;
   gap: 8px;

@@ -244,6 +244,38 @@
           </div>
         </form>
       </div>
+
+      <!-- Shift Day Modal -->
+      <div class="modal-overlay" id="shiftDayModal">
+        <div class="modal-card" style="max-width:420px;">
+          <div class="modal-header">
+            <h3 id="shiftDayModalTitle">日別設定</h3>
+            <button class="modal-close" id="shiftDayModalClose">×</button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="shiftDayDate">
+            <div class="form-group">
+              <label>ステータス</label>
+              <div class="day-checkboxes" style="gap:12px;">
+                <label class="day-check"><input type="radio" name="shiftDayStatus" value="work" checked><span>出勤</span></label>
+                <label class="day-check"><input type="radio" name="shiftDayStatus" value="off"><span>休み</span></label>
+              </div>
+            </div>
+            <div id="shiftDayHoursArea">
+              <div class="form-row form-row-3">
+                <div class="form-group"><label>開店時間</label><input type="time" id="shiftDayOpen" value="10:00"></div>
+                <div class="form-group"><label>閉店時間</label><input type="time" id="shiftDayClose" value="20:00"></div>
+                <div class="form-group"><label>最終受付</label><input type="time" id="shiftDayLast" value="19:00"></div>
+              </div>
+              <p class="form-hint" style="font-size:11px;color:var(--text-secondary,#888);margin-top:4px;">空欄 = デフォルト営業時間を使用</p>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-cancel" id="shiftDayReset">リセット</button>
+              <button class="btn-save" id="shiftDaySave">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ========== Clients Section ========== -->

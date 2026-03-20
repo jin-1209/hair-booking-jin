@@ -1149,6 +1149,22 @@ function renderCalendar() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Load shift settings from dashboard
+  let closedDays = [2]; // default: Tuesday
+  try {
+    const shiftSettings = localStorage.getItem('salonShiftSettings');
+    if (shiftSettings) {
+      const parsed = JSON.parse(shiftSettings);
+      if (parsed.closedDays) closedDays = parsed.closedDays;
+    }
+  } catch(e) {}
+
+  let individualShifts = {};
+  try {
+    const shifts = localStorage.getItem('salonShifts');
+    if (shifts) individualShifts = JSON.parse(shifts);
+  } catch(e) {}
+
   grid.innerHTML = '';
 
   for (let i = 0; i < firstDay; i++) {
@@ -1163,10 +1179,16 @@ function renderCalendar() {
     cell.className = 'cal-day';
     cell.textContent = day;
 
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayOfWeek = date.getDay();
+    const isClosedDay = closedDays.includes(dayOfWeek);
+    const shiftData = individualShifts[dateStr];
+    const isIndividualOff = shiftData?.isOff || false;
+    const isHoliday = (isClosedDay && !shiftData) || isIndividualOff;
+
     if (date < today) {
       cell.classList.add('disabled');
-    } else if (date.getDay() === 2) {
-      // Tuesday is closed
+    } else if (isHoliday) {
       cell.classList.add('disabled');
     } else {
       if (date.getTime() === today.getTime()) {
@@ -1196,9 +1218,53 @@ function renderTimeSlots() {
   container.style.display = 'block';
   slotsGrid.innerHTML = '';
 
-  const seed = state.selectedDate.getDate();
+  // Get business hours for the selected date
+  const date = state.selectedDate;
+  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-  TIME_SLOTS.forEach((time, index) => {
+  let defaults = { openTime: '10:00', closeTime: '20:00', lastReception: '19:00' };
+  try {
+    const settings = localStorage.getItem('salonShiftSettings');
+    if (settings) {
+      const parsed = JSON.parse(settings);
+      defaults.openTime = parsed.openTime || '10:00';
+      defaults.closeTime = parsed.closeTime || '20:00';
+      defaults.lastReception = parsed.lastReception || '19:00';
+    }
+  } catch(e) {}
+
+  // Check for day-specific hours
+  let dayOpenTime = defaults.openTime;
+  let dayLastReception = defaults.lastReception;
+  try {
+    const shifts = localStorage.getItem('salonShifts');
+    if (shifts) {
+      const parsed = JSON.parse(shifts);
+      const dayData = parsed[dateStr];
+      if (dayData && !dayData.isOff) {
+        if (dayData.openTime) dayOpenTime = dayData.openTime;
+        if (dayData.lastReception) dayLastReception = dayData.lastReception;
+      }
+    }
+  } catch(e) {}
+
+  // Generate time slots in 30-minute increments from open to last reception
+  const timeSlots = [];
+  const [openH, openM] = dayOpenTime.split(':').map(Number);
+  const [lastH, lastM] = dayLastReception.split(':').map(Number);
+  let currentMinutes = openH * 60 + openM;
+  const lastMinutes = lastH * 60 + lastM;
+
+  while (currentMinutes <= lastMinutes) {
+    const h = Math.floor(currentMinutes / 60);
+    const m = currentMinutes % 60;
+    timeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    currentMinutes += 30;
+  }
+
+  const seed = date.getDate();
+
+  timeSlots.forEach((time, index) => {
     const slot = document.createElement('div');
     slot.className = 'time-slot';
     slot.textContent = time;

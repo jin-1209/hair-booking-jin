@@ -259,6 +259,87 @@ function initShifts() {
   const hf = document.getElementById('hoursForm');
   if (hf) hf.addEventListener('submit', (e) => { e.preventDefault(); saveShiftSettings(); showToast('営業時間を保存しました'); });
   loadShiftSettings();
+
+  // Day modal events
+  initShiftDayModal();
+}
+
+function initShiftDayModal() {
+  const modal = document.getElementById('shiftDayModal');
+  if (!modal) return;
+
+  document.getElementById('shiftDayModalClose')?.addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+  // Toggle hours area visibility on status change
+  document.querySelectorAll('input[name="shiftDayStatus"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const hoursArea = document.getElementById('shiftDayHoursArea');
+      if (hoursArea) hoursArea.style.display = radio.value === 'work' ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('shiftDaySave')?.addEventListener('click', () => {
+    const dateStr = document.getElementById('shiftDayDate').value;
+    const isOff = document.querySelector('input[name="shiftDayStatus"]:checked')?.value === 'off';
+    const shifts = getShifts();
+
+    if (isOff) {
+      shifts[dateStr] = { isOff: true };
+    } else {
+      const openTime = document.getElementById('shiftDayOpen').value || '';
+      const closeTime = document.getElementById('shiftDayClose').value || '';
+      const lastReception = document.getElementById('shiftDayLast').value || '';
+      // If all fields empty, it means "use defaults" → still save to override closed day
+      shifts[dateStr] = { isOff: false, openTime, closeTime, lastReception };
+    }
+
+    saveShifts(shifts);
+    renderShiftCalendar();
+    modal.classList.remove('open');
+    showToast('日別設定を保存しました');
+  });
+
+  document.getElementById('shiftDayReset')?.addEventListener('click', () => {
+    const dateStr = document.getElementById('shiftDayDate').value;
+    const shifts = getShifts();
+    delete shifts[dateStr];
+    saveShifts(shifts);
+    renderShiftCalendar();
+    modal.classList.remove('open');
+    showToast('日別設定をリセットしました');
+  });
+}
+
+function openShiftDayModal(dateStr) {
+  const modal = document.getElementById('shiftDayModal');
+  if (!modal) return;
+
+  // Parse date for display
+  const [y, m, d] = dateStr.split('-');
+  const weekDay = ['日','月','火','水','木','金','土'][new Date(parseInt(y), parseInt(m)-1, parseInt(d)).getDay()];
+  document.getElementById('shiftDayModalTitle').textContent = `${parseInt(m)}/${parseInt(d)}（${weekDay}）の設定`;
+  document.getElementById('shiftDayDate').value = dateStr;
+
+  // Load existing data
+  const shifts = getShifts();
+  const shiftData = shifts[dateStr];
+  const defaults = loadData('salonShiftSettings', { openTime:'10:00', closeTime:'20:00', lastReception:'19:00' });
+
+  if (shiftData?.isOff) {
+    document.querySelector('input[name="shiftDayStatus"][value="off"]').checked = true;
+    document.getElementById('shiftDayHoursArea').style.display = 'none';
+  } else {
+    document.querySelector('input[name="shiftDayStatus"][value="work"]').checked = true;
+    document.getElementById('shiftDayHoursArea').style.display = 'block';
+  }
+
+  // Populate hours (use day-specific or default)
+  document.getElementById('shiftDayOpen').value = shiftData?.openTime || defaults.openTime || '10:00';
+  document.getElementById('shiftDayClose').value = shiftData?.closeTime || defaults.closeTime || '20:00';
+  document.getElementById('shiftDayLast').value = shiftData?.lastReception || defaults.lastReception || '19:00';
+
+  modal.classList.add('open');
 }
 
 function getShifts() { return loadData('salonShifts', {}); }
@@ -301,6 +382,7 @@ function renderShiftCalendar() {
   const daysInMonth = new Date(shiftYear, shiftMonth_ + 1, 0).getDate();
   const shifts = getShifts();
   const closedDays = getClosedDays();
+  const defaults = loadData('salonShiftSettings', { openTime:'10:00', closeTime:'20:00', lastReception:'19:00' });
   let html = '';
 
   for (let i = 0; i < firstDay; i++) html += '<div class="shift-cell empty"></div>';
@@ -311,24 +393,40 @@ function renderShiftCalendar() {
     const shiftData = shifts[dateStr];
     const isOff = shiftData?.isOff || false;
     let cls = 'shift-cell';
-    if (isClosedDay && !shiftData) cls += ' holiday';
-    else if (isOff) cls += ' off';
-    else cls += ' work';
+    let statusText = '';
+    let hoursText = '';
+
+    if (isClosedDay && !shiftData) {
+      cls += ' holiday';
+      statusText = '定休';
+    } else if (isOff) {
+      cls += ' off';
+      statusText = '休み';
+    } else {
+      cls += ' work';
+      statusText = '出勤';
+      // Show custom hours if set
+      const openTime = shiftData?.openTime || defaults.openTime || '10:00';
+      const closeTime = shiftData?.closeTime || defaults.closeTime || '20:00';
+      if (shiftData && (shiftData.openTime || shiftData.closeTime)) {
+        hoursText = `${openTime}~${closeTime}`;
+      }
+    }
+
     const today = new Date();
     if (d === today.getDate() && shiftMonth_ === today.getMonth() && shiftYear === today.getFullYear()) cls += ' today';
 
-    html += `<div class="${cls}" data-date="${dateStr}"><span class="shift-day">${d}</span><span class="shift-status">${isClosedDay && !shiftData ? '定休' : isOff ? '休み' : '出勤'}</span></div>`;
+    html += `<div class="${cls}" data-date="${dateStr}">
+      <span class="shift-day">${d}</span>
+      <span class="shift-status">${statusText}</span>
+      ${hoursText ? `<span class="shift-hours">${hoursText}</span>` : ''}
+    </div>`;
   }
   grid.innerHTML = html;
 
   grid.querySelectorAll('.shift-cell:not(.empty)').forEach(cell => {
     cell.addEventListener('click', () => {
-      const date = cell.dataset.date;
-      const shifts = getShifts();
-      if (shifts[date]?.isOff) { delete shifts[date]; }
-      else { shifts[date] = { isOff: true }; }
-      saveShifts(shifts);
-      renderShiftCalendar();
+      openShiftDayModal(cell.dataset.date);
     });
   });
 }
