@@ -25,6 +25,44 @@ const EMAIL_CONFIG = {
 };
 
 // ==========================================
+// Google Sheets Configuration
+// Google Apps Script でWebアプリをデプロイし、そのURLを設定してください
+// セットアップ手順: google_sheets_setup.md を参照
+// ==========================================
+const GOOGLE_SHEETS_CONFIG = {
+  enabled: false, // true にするとスプレッドシート連携が有効になります
+  webAppUrl: '' // Google Apps Script のデプロイURL
+};
+
+// Googleスプレッドシートに予約データを送信
+function sendToGoogleSheets(data) {
+  if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+    console.log('Google Sheets連携は無効です（設定が未完了）');
+    return;
+  }
+
+  fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      customerEmail: data.customerEmail || '',
+      menuName: data.menuName,
+      date: data.dateISO,
+      time: data.time,
+      price: data.price,
+      note: data.note || ''
+    })
+  }).then(() => {
+    console.log('Google Sheetsへの送信完了');
+  }).catch(err => {
+    console.error('Google Sheets送信エラー:', err);
+  });
+}
+
+// ==========================================
 // Translations
 // ==========================================
 const TRANSLATIONS = {
@@ -1008,6 +1046,18 @@ function handleSubmit(e) {
       note: note
     });
   }
+
+  // Send to Google Sheets
+  sendToGoogleSheets({
+    customerName: name,
+    customerPhone: phone,
+    customerEmail: email,
+    menuName: menuName,
+    dateISO: dateISO,
+    time: state.selectedTime || '',
+    price: menuPrice,
+    note: note
+  });
 
   const honorific = t('modal_honorific');
   const nameDisplay = honorific ? `${name} ${honorific}` : name;
