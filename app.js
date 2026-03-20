@@ -30,8 +30,8 @@ const EMAIL_CONFIG = {
 // セットアップ手順: google_sheets_setup.md を参照
 // ==========================================
 const GOOGLE_SHEETS_CONFIG = {
-  enabled: false, // true にするとスプレッドシート連携が有効になります
-  webAppUrl: '' // Google Apps Script のデプロイURL
+  enabled: true,
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbwXrtZ8UD2qxTz_KUxSgumX-vLsIDNMZKVZFBPCoPjdjdFw11mGZjm3TL1M-mNeAY5A/exec'
 };
 
 // Googleスプレッドシートに予約データを送信
