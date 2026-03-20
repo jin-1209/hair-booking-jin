@@ -203,12 +203,12 @@
         <div class="progress-bar animate-in">
           <div class="progress-step active" data-step="1">
             <div class="step-circle">1</div>
-            <span data-i18n="step1_label">メニュー選択</span>
+            <span data-i18n="step1_label">日時選択</span>
           </div>
           <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
           <div class="progress-step" data-step="2">
             <div class="step-circle">2</div>
-            <span data-i18n="step2_label">日時選択</span>
+            <span data-i18n="step2_label">メニュー選択</span>
           </div>
           <div class="progress-line"><div class="progress-fill"></div></div>
           <div class="progress-step" data-step="3">
@@ -217,20 +217,9 @@
           </div>
         </div>
 
-        <!-- Step 1: Menu Selection -->
+        <!-- Step 1: Date & Time -->
         <div class="booking-panel active" id="bookingStep1">
-          <h3 class="panel-heading" data-i18n="panel1_title">メニューをお選びください</h3>
-          <div class="booking-menu-list" id="bookingMenuList">
-            <!-- Rendered by JS -->
-          </div>
-          <div class="panel-actions">
-            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">次へ進む →</button>
-          </div>
-        </div>
-
-        <!-- Step 2: Date & Time -->
-        <div class="booking-panel" id="bookingStep2">
-          <h3 class="panel-heading" data-i18n="panel2_title">日時をお選びください</h3>
+          <h3 class="panel-heading" data-i18n="panel1_title">日時をお選びください</h3>
           <div class="calendar-card">
             <div class="calendar-nav">
               <button class="cal-arrow" id="calPrev" aria-label="前の月">‹</button>
@@ -245,6 +234,17 @@
           <div class="time-slots-area" id="timeSlotsContainer" style="display:none;">
             <h4 class="time-heading" data-i18n="time_select">時間帯を選択</h4>
             <div class="time-slots-grid" id="timeSlots"></div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">次へ進む →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Menu Selection -->
+        <div class="booking-panel" id="bookingStep2">
+          <h3 class="panel-heading" data-i18n="panel2_title">メニューをお選びください</h3>
+          <div class="booking-menu-list" id="bookingMenuList">
+            <!-- Rendered by JS -->
           </div>
           <div class="panel-actions panel-actions-split">
             <button class="btn btn-outline-subtle" id="backToStep1" data-i18n="btn_back">← 戻る</button>

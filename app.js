@@ -59,11 +59,11 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: 'ご予約',
     booking_subtitle: '3ステップで簡単予約。お好みのメニューと日時をお選びください。',
-    step1_label: 'メニュー選択',
-    step2_label: '日時選択',
+    step1_label: '日時選択',
+    step2_label: 'メニュー選択',
     step3_label: 'お客様情報',
-    panel1_title: 'メニューをお選びください',
-    panel2_title: '日時をお選びください',
+    panel1_title: '日時をお選びください',
+    panel2_title: 'メニューをお選びください',
     panel3_title: 'お客様情報をご入力ください',
     btn_next: '次へ進む →',
     btn_back: '← 戻る',
@@ -156,11 +156,11 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: 'Booking',
     booking_subtitle: 'Book in 3 easy steps. Choose your preferred service and date.',
-    step1_label: 'Select Service',
-    step2_label: 'Date & Time',
+    step1_label: 'Date & Time',
+    step2_label: 'Select Service',
     step3_label: 'Your Info',
-    panel1_title: 'Select a service',
-    panel2_title: 'Choose date & time',
+    panel1_title: 'Choose date & time',
+    panel2_title: 'Select a service',
     panel3_title: 'Enter your information',
     btn_next: 'Next →',
     btn_back: '← Back',
@@ -253,11 +253,11 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: '预约',
     booking_subtitle: '3步轻松预约。选择您喜欢的服务和日期。',
-    step1_label: '选择项目',
-    step2_label: '选择日期',
+    step1_label: '选择日期',
+    step2_label: '选择项目',
     step3_label: '客户信息',
-    panel1_title: '请选择服务项目',
-    panel2_title: '请选择日期和时间',
+    panel1_title: '请选择日期和时间',
+    panel2_title: '请选择服务项目',
     panel3_title: '请填写您的信息',
     btn_next: '下一步 →',
     btn_back: '← 返回',
@@ -879,7 +879,7 @@ function selectBookingMenu(item, el) {
   document.querySelectorAll('.booking-menu-item').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
   state.selectedMenu = item;
-  document.getElementById('toStep2').disabled = false;
+  document.getElementById('toStep3').disabled = false;
 }
 
 function goToStep(step) {
@@ -898,6 +898,11 @@ function goToStep(step) {
 
   document.querySelectorAll('.booking-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`bookingStep${step}`).classList.add('active');
+
+  if (step === 2) {
+    renderBookingMenuList();
+    document.getElementById('toStep3').disabled = !state.selectedMenu;
+  }
 
   if (step === 3) {
     updateBookingSummary();
@@ -1182,7 +1187,7 @@ function selectDate(date) {
   state.selectedTime = null;
   renderCalendar();
   renderTimeSlots();
-  document.getElementById('toStep3').disabled = true;
+  document.getElementById('toStep2').disabled = true;
 }
 
 function renderTimeSlots() {
@@ -1214,7 +1219,7 @@ function renderTimeSlots() {
 
 function selectTime(time, e) {
   state.selectedTime = time;
-  document.getElementById('toStep3').disabled = false;
+  document.getElementById('toStep2').disabled = false;
 
   document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
   e.target.classList.add('selected');
