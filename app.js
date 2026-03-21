@@ -31,7 +31,31 @@ const EMAIL_CONFIG = {
 // ==========================================
 const GOOGLE_SHEETS_CONFIG = {
   enabled: true,
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbwXrtZ8UD2qxTz_KUxSgumX-vLsIDNMZKVZFBPCoPjdjdFw11mGZjm3TL1M-mNeAY5A/exec'
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbzH1kQjz2ML_qjlEzOTaoXmfUrTPMV0nS2p_JDPfv93Rfnev0tedljGa2Aj65rnxnEenw/exec'
+};
+
+// ==========================================
+// Twilio SMS Configuration
+// Twilioアカウントの情報を設定してください
+// https://www.twilio.com でアカウント作成
+// ==========================================
+const TWILIO_CONFIG = {
+  enabled: false,
+  // サーバーレス関数のURL（Cloud Functions等でデプロイ）
+  functionUrl: '',
+  // 美容師の電話番号（SMS通知先）
+  stylistPhone: '+6562593200'
+};
+
+// ==========================================
+// Instagram Configuration
+// ==========================================
+const INSTAGRAM_CONFIG = {
+  handle: '@jinstaglam.hair',
+  profileUrl: 'https://instagram.com/jinstaglam.hair',
+  // Instagram Graph API を使う場合は以下を設定
+  accessToken: '',
+  userId: ''
 };
 
 // Googleスプレッドシートに予約データを送信
@@ -41,20 +65,22 @@ function sendToGoogleSheets(data) {
     return;
   }
 
+  const payload = JSON.stringify({
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    customerEmail: data.customerEmail || '',
+    menuName: data.menuName,
+    date: data.dateISO,
+    time: data.time,
+    price: data.price,
+    note: data.note || ''
+  });
+
   fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
     method: 'POST',
     mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      customerName: data.customerName,
-      customerPhone: data.customerPhone,
-      customerEmail: data.customerEmail || '',
-      menuName: data.menuName,
-      date: data.dateISO,
-      time: data.time,
-      price: data.price,
-      note: data.note || ''
-    })
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: payload
   }).then(() => {
     console.log('Google Sheetsへの送信完了');
   }).catch(err => {
@@ -161,6 +187,18 @@ const TRANSLATIONS = {
     cal_available: '予約可能',
     cal_holiday: '定休日',
     cal_past: '過去',
+    ig_badge: 'Gallery',
+    ig_title: '最新のスタイル',
+    ig_subtitle: 'Instagramで最新の施術事例をご覧ください。',
+    ig_follow: '@jinstaglam.hair をフォロー',
+    map_directions: '🗯️ 経路を検索',
+    map_larger: '🗺️ 大きな地図で開く',
+    pwa_title: 'ホーム画面に追加',
+    pwa_desc: 'アプリとして簡単アクセス',
+    pwa_install: '追加',
+    notif_new_booking: '新規予約',
+    notif_booking_msg: '新しい予約が入りました。',
+    sms_sent: 'SMS通知を送信しました',
   },
 
   en: {
@@ -258,6 +296,18 @@ const TRANSLATIONS = {
     cal_available: 'Available',
     cal_holiday: 'Closed',
     cal_past: 'Past',
+    ig_badge: 'Gallery',
+    ig_title: 'Latest Styles',
+    ig_subtitle: 'Check out our latest work on Instagram.',
+    ig_follow: 'Follow @jinstaglam.hair',
+    map_directions: '🗯️ Get Directions',
+    map_larger: '🗺️ View Larger Map',
+    pwa_title: 'Add to Home Screen',
+    pwa_desc: 'Quick access as an app',
+    pwa_install: 'Install',
+    notif_new_booking: 'New Booking',
+    notif_booking_msg: 'A new booking has been received.',
+    sms_sent: 'SMS notification sent',
   },
 
   zh: {
@@ -355,6 +405,18 @@ const TRANSLATIONS = {
     cal_available: '可预约',
     cal_holiday: '休息日',
     cal_past: '已过',
+    ig_badge: 'Gallery',
+    ig_title: '最新作品',
+    ig_subtitle: '在Instagram上查看最新作品。',
+    ig_follow: '关注 @jinstaglam.hair',
+    map_directions: '🗯️ 获取路线',
+    map_larger: '🗺️ 查看大地图',
+    pwa_title: '添加到主屏幕',
+    pwa_desc: '像应用程序一样快速访问',
+    pwa_install: '添加',
+    notif_new_booking: '新预约',
+    notif_booking_msg: '收到新的预约。',
+    sms_sent: 'SMS通知已发送',
   }
 };
 
@@ -514,7 +576,7 @@ const state = {
   selectedTime: null,
   calendarYear: new Date().getFullYear(),
   calendarMonth: new Date().getMonth(),
-  lang: 'ja'
+  lang: 'en'
 };
 
 // ==========================================
@@ -530,15 +592,41 @@ function getMenuItems() {
   return DEFAULT_MENU_ITEMS;
 }
 
+// サイト情報のデフォルト値
+// localStorageに保存済みの値がない場合にこの値が使われる
+const DEFAULT_SITE_DATA = {
+  stylistName: 'JIN',
+  salonName: 'Beauty Stylist at TOKI+LIM',
+  stylistBio: 'シンガポール在住歴10年以上。TOKI+LIMにて「完全予約制・マンツーマン」スタイルで、お客様一人ひとりに寄り添った施術をご提供しています。',
+  instagram: 'https://instagram.com/jinstaglam.hair',
+  yearsExp: '10',
+  clientsServed: '3,000',
+  rating: '4.9',
+  address: '328 North Bridge Road\n#02-33 Raffles Hotel Arcade\nSingapore 188719',
+  businessHours: '10:00 〜 20:00',
+  closedDay: '毎週火曜日',
+  phone: '+65 6259 3200',
+  email: 'info@tokilim.com'
+};
+
 // Load saved site data from localStorage (dashboard edits)
+// デフォルト値と保存済みデータをマージして返す
 function getSiteData() {
   try {
     const saved = localStorage.getItem('salonSiteData');
     if (saved) {
-      return JSON.parse(saved);
+      const parsedData = JSON.parse(saved);
+      // デフォルト値をベースに、保存済みデータ（null以外）で上書き
+      const merged = { ...DEFAULT_SITE_DATA };
+      Object.keys(parsedData).forEach(key => {
+        if (parsedData[key] !== null && parsedData[key] !== undefined) {
+          merged[key] = parsedData[key];
+        }
+      });
+      return merged;
     }
   } catch(e) { /* ignore */ }
-  return null;
+  return { ...DEFAULT_SITE_DATA };
 }
 
 // ==========================================
@@ -570,6 +658,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initQuickCalendar();
   updateNextSlot();
   initActiveNavTracking();
+  initInstagramGallery();
+  initPWAInstall();
+  initPushNotifications();
 });
 
 // ==========================================
@@ -577,15 +668,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 function applySiteData() {
   const data = getSiteData();
-  if (!data) return;
 
-  // Apply profile photo
-  if (data.profilePhoto) {
-    const heroImg = document.getElementById('heroImg');
-    const stylistImg = document.getElementById('stylistImg');
-    if (heroImg) heroImg.src = data.profilePhoto;
-    if (stylistImg) stylistImg.src = data.profilePhoto;
-  }
+  // 写真はプロジェクト内の stylist.jpg を直接使用
+  // ダッシュボードで新しい写真をアップロード → stylist.jpg としてダウンロード
+  // → プロジェクトフォルダに配置 → デプロイで反映
 
   // Apply stylist name
   if (data.stylistName) {
@@ -1054,6 +1140,27 @@ function handleSubmit(e) {
     customerEmail: email,
     menuName: menuName,
     dateISO: dateISO,
+    time: state.selectedTime || '',
+    price: menuPrice,
+    note: note
+  });
+
+  // プッシュ通知を送信（ダッシュボードが開いている場合）
+  sendBookingNotification({
+    customerName: name,
+    customerPhone: phone,
+    menuName: menuName,
+    dateStr: dateStr,
+    time: state.selectedTime || '',
+    price: menuPrice
+  });
+
+  // SMS通知を送信（Twilio設定済みの場合）
+  sendSMSNotification({
+    customerName: name,
+    customerPhone: phone,
+    menuName: menuName,
+    dateStr: dateStr,
     time: state.selectedTime || '',
     price: menuPrice,
     note: note
@@ -1674,3 +1781,330 @@ function quickBook(year, month, day) {
     }, 500);
   }
 }
+
+// ==========================================
+// Instagram ギャラリー
+// ==========================================
+const DEFAULT_IG_POSTS = [
+  {
+    id: 'ig1',
+    imageUrl: '',
+    caption: '透明感カラー✨ イルミナカラーでツヤ感のある仕上がり',
+    likes: 128,
+    color: '#e8c4a8'
+  },
+  {
+    id: 'ig2',
+    imageUrl: '',
+    caption: 'レイヤーカットで軽やかな動きをプラス',
+    likes: 95,
+    color: '#d4a574'
+  },
+  {
+    id: 'ig3',
+    imageUrl: '',
+    caption: 'デジタルパーマで柔らかカール🌀',
+    likes: 156,
+    color: '#c9a487'
+  },
+  {
+    id: 'ig4',
+    imageUrl: '',
+    caption: 'バレイヤージュ × グレージュ',
+    likes: 112,
+    color: '#b89a7e'
+  },
+  {
+    id: 'ig5',
+    imageUrl: '',
+    caption: 'ヘッドスパで極上のリラックスタイム💆',
+    likes: 89,
+    color: '#d4c4a8'
+  },
+  {
+    id: 'ig6',
+    imageUrl: '',
+    caption: 'ハイライトカラーで夯陽の下でも透け感✨',
+    likes: 143,
+    color: '#e0c09a'
+  },
+  {
+    id: 'ig7',
+    imageUrl: '',
+    caption: 'TOKIOトリートメントで髪質改善✨',
+    likes: 78,
+    color: '#c4b090'
+  },
+  {
+    id: 'ig8',
+    imageUrl: '',
+    caption: 'ショートボブでおしゃれ可愛く💇‍♀️',
+    likes: 167,
+    color: '#dab896'
+  }
+];
+
+function initInstagramGallery() {
+  const grid = document.getElementById('igGrid');
+  if (!grid) return;
+
+  // Instagram Graph APIが設定されている場合はライブデータを取得
+  if (INSTAGRAM_CONFIG.accessToken && INSTAGRAM_CONFIG.userId) {
+    fetchInstagramPosts(grid);
+  } else {
+    renderInstagramMock(grid);
+  }
+}
+
+function fetchInstagramPosts(grid) {
+  const url = `https://graph.instagram.com/${INSTAGRAM_CONFIG.userId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,like_count,timestamp&limit=8&access_token=${INSTAGRAM_CONFIG.accessToken}`;
+  
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (data.data && data.data.length > 0) {
+        renderInstagramLive(grid, data.data);
+      } else {
+        renderInstagramMock(grid);
+      }
+    })
+    .catch(err => {
+      console.warn('Instagram API error:', err);
+      renderInstagramMock(grid);
+    });
+}
+
+function renderInstagramLive(grid, posts) {
+  grid.innerHTML = posts.slice(0, 8).map(post => {
+    const imgUrl = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url;
+    const caption = (post.caption || '').substring(0, 50);
+    return `
+      <a href="${post.permalink}" target="_blank" class="ig-item">
+        <img src="${imgUrl}" alt="${caption}" loading="lazy">
+        <div class="ig-item-overlay">
+          <span class="ig-likes">❤️ ${post.like_count || ''}</span>
+          <span class="ig-caption">${caption}</span>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function renderInstagramMock(grid) {
+  grid.innerHTML = DEFAULT_IG_POSTS.map(post => {
+    // 画像がない場合はCSSグラデーションで美しいプレースホルダーを生成
+    const bgStyle = post.imageUrl 
+      ? '' 
+      : `background: linear-gradient(135deg, ${post.color}, ${adjustColor(post.color, -20)}); display: flex; align-items: center; justify-content: center;`;
+    
+    const imgContent = post.imageUrl
+      ? `<img src="${post.imageUrl}" alt="${post.caption}" loading="lazy">`
+      : `<div style="${bgStyle} width:100%; height:100%;"><span style="font-size:2.5rem;">✂️</span></div>`;
+
+    return `
+      <a href="${INSTAGRAM_CONFIG.profileUrl}" target="_blank" class="ig-item">
+        ${imgContent}
+        <div class="ig-item-overlay">
+          <span class="ig-likes">❤️ ${post.likes}</span>
+          <span class="ig-caption">${post.caption}</span>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function adjustColor(hex, amount) {
+  hex = hex.replace('#', '');
+  const r = Math.max(0, Math.min(255, parseInt(hex.substring(0,2), 16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(hex.substring(2,4), 16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(hex.substring(4,6), 16) + amount));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+// ==========================================
+// PWA インストール
+// ==========================================
+let deferredPrompt = null;
+
+function initPWAInstall() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // 既に拒否済みなら表示しない
+    if (localStorage.getItem('pwa-dismissed')) return;
+    
+    // 3秒後にバナーを表示
+    setTimeout(() => showPWABanner(), 3000);
+  });
+
+  // インストール済み椅別
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    hidePWABanner();
+    console.log('PWA インストール完了');
+  });
+}
+
+function showPWABanner() {
+  // 既存のバナーを削除
+  const existing = document.querySelector('.pwa-install-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = 'pwa-install-banner';
+  banner.innerHTML = `
+    <div class="pwa-icon">
+      <img src="icons/icon-192.png" alt="JIN">
+    </div>
+    <div class="pwa-text">
+      <div class="pwa-title" data-i18n="pwa_title">${t('pwa_title')}</div>
+      <div class="pwa-desc" data-i18n="pwa_desc">${t('pwa_desc')}</div>
+    </div>
+    <div class="pwa-actions">
+      <button class="pwa-install-btn" id="pwaInstallBtn">${t('pwa_install')}</button>
+      <button class="pwa-dismiss" id="pwaDismissBtn">×</button>
+    </div>
+  `;
+
+  document.body.appendChild(banner);
+
+  // アニメーションで表示
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      banner.classList.add('visible');
+    });
+  });
+
+  // インストールボタン
+  document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      console.log('PWA インストール承認');
+    }
+    deferredPrompt = null;
+    hidePWABanner();
+  });
+
+  // 拒否ボタン
+  document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+    hidePWABanner();
+    localStorage.setItem('pwa-dismissed', 'true');
+  });
+}
+
+function hidePWABanner() {
+  const banner = document.querySelector('.pwa-install-banner');
+  if (banner) {
+    banner.classList.remove('visible');
+    setTimeout(() => banner.remove(), 500);
+  }
+}
+
+// ==========================================
+// プッシュ通知
+// ==========================================
+function initPushNotifications() {
+  // ダッシュボード側のみで有効化（一般ユーザーには不要）
+  // dashboard.js から呼び出される
+}
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.warn('このブラウザは通知をサポートしていません');
+    return Promise.resolve(false);
+  }
+
+  if (Notification.permission === 'granted') {
+    return Promise.resolve(true);
+  }
+
+  if (Notification.permission === 'denied') {
+    console.warn('通知がブロックされています');
+    return Promise.resolve(false);
+  }
+
+  return Notification.requestPermission().then(permission => {
+    return permission === 'granted';
+  });
+}
+
+function sendLocalNotification(title, body, options = {}) {
+  if (Notification.permission !== 'granted') return;
+
+  // Service Worker経由で通知（バックグラウンド対応）
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.showNotification(title, {
+        body: body,
+        icon: 'icons/icon-192.png',
+        badge: 'icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: options.tag || 'general',
+        renotify: true,
+        data: { url: options.url || '/' },
+        ...options
+      });
+    });
+  } else {
+    // フォールバック：通常のNotification API
+    new Notification(title, {
+      body: body,
+      icon: 'icons/icon-192.png',
+      ...options
+    });
+  }
+}
+
+// 予約完了時にプッシュ通知を送信（美容師向け）
+function sendBookingNotification(bookingData) {
+  const title = t('notif_new_booking');
+  const body = `${bookingData.customerName} - ${bookingData.menuName}\n${bookingData.dateStr} ${bookingData.time}`;
+  
+  sendLocalNotification(title, body, {
+    tag: 'new-booking',
+    url: '/dashboard.html'
+  });
+}
+
+// ==========================================
+// SMS 通知（Twilio連携）
+// ==========================================
+function sendSMSNotification(data) {
+  if (!TWILIO_CONFIG.enabled || !TWILIO_CONFIG.functionUrl) {
+    console.log('SMS通知は無効です（Twilio未設定）');
+    return Promise.resolve(false);
+  }
+
+  const smsPayload = {
+    to: TWILIO_CONFIG.stylistPhone,
+    message: [
+      `【新規予約】`,
+      `お客様: ${data.customerName}`,
+      `電話: ${data.customerPhone}`,
+      `メニュー: ${data.menuName}`,
+      `日時: ${data.dateStr} ${data.time}`,
+      `料金: ${data.price}`,
+      data.note ? `備考: ${data.note}` : ''
+    ].filter(Boolean).join('\n')
+  };
+
+  // サーバーレス関数経由でTwilio APIを呼び出し
+  return fetch(TWILIO_CONFIG.functionUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(smsPayload)
+  })
+  .then(res => res.json())
+  .then(result => {
+    console.log(t('sms_sent'), result);
+    return true;
+  })
+  .catch(err => {
+    console.error('SMS送信エラー:', err);
+    return false;
+  });
+}
+

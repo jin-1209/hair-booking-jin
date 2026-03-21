@@ -8,6 +8,74 @@
 function loadData(key, fallback) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; } catch(e) { return fallback; } }
 function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
+// ==========================================
+// IndexedDB — 写真データ保存用
+// localStorageは5MBの制限があるため、画像はIndexedDBに保存
+// ==========================================
+function openPhotoDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('SalonPhotoDB', 1);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('photos')) {
+        db.createObjectStore('photos', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+function savePhotoToDB(key, dataUrl) {
+  return openPhotoDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('photos', 'readwrite');
+      tx.objectStore('photos').put({ id: key, data: dataUrl, updatedAt: Date.now() });
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  });
+}
+
+function getPhotoFromDB(key) {
+  return openPhotoDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('photos', 'readonly');
+      const request = tx.objectStore('photos').get(key);
+      request.onsuccess = () => resolve(request.result ? request.result.data : null);
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+function deletePhotoFromDB(key) {
+  return openPhotoDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('photos', 'readwrite');
+      tx.objectStore('photos').delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  });
+}
+
+// サイト情報のデフォルト値（ダッシュボード・予約サイト共通）
+// localStorageに保存済みの値がない場合にこの値が使われる
+const DEFAULT_SITE_DATA = {
+  stylistName: 'JIN',
+  salonName: 'Beauty Stylist at TOKI+LIM',
+  stylistBio: 'シンガポール在住歴10年以上。TOKI+LIMにて「完全予約制・マンツーマン」スタイルで、お客様一人ひとりに寄り添った施術をご提供しています。',
+  instagram: 'https://instagram.com/jinstaglam.hair',
+  yearsExp: '10',
+  clientsServed: '3,000',
+  rating: '4.9',
+  address: '328 North Bridge Road\n#02-33 Raffles Hotel Arcade\nSingapore 188719',
+  businessHours: '10:00 〜 20:00',
+  closedDay: '毎週火曜日',
+  phone: '+65 6259 3200',
+  email: 'info@tokilim.com'
+};
+
 // --- Default Data ---
 const DEFAULT_MENU_ITEMS = [
   { id:'cut', name:{ja:'カット',en:'Haircut',zh:'剪发'}, price:'$60〜', priceNum:60, desc:{ja:'骨格診断に基づいた似合わせカット。',en:'Personalized cut based on facial structure.',zh:'根据面部骨骼诊断打造发型。'}, time:{ja:'約60分',en:'~60 min',zh:'约60分钟'}, timeNum:60 },
@@ -699,6 +767,34 @@ function initMessages() {
     if (t.reminder) document.getElementById('tmplReminder').value = t.reminder;
     if (t.cancel) document.getElementById('tmplCancel').value = t.cancel;
   }
+
+  // プッシュ通知有効化ボタン
+  const pushBtn = document.getElementById('enablePushBtn');
+  if (pushBtn) {
+    // 現在の状態を反映
+    if ('Notification' in window && Notification.permission === 'granted') {
+      pushBtn.textContent = '有効 ✓';
+      pushBtn.style.background = '#22c55e';
+    }
+    pushBtn.addEventListener('click', async () => {
+      if (typeof requestNotificationPermission === 'function') {
+        const granted = await requestNotificationPermission();
+        if (granted) {
+          pushBtn.textContent = '有効 ✓';
+          pushBtn.style.background = '#22c55e';
+          showToast('プッシュ通知を有効にしました');
+          // テスト通知を送信
+          if (typeof sendLocalNotification === 'function') {
+            sendLocalNotification('通知テスト', 'プッシュ通知が正常に有効化されました。', { tag: 'test' });
+          }
+        } else {
+          showToast('通知の許可が拒否されました。ブラウザの設定を確認してください。');
+        }
+      } else {
+        showToast('通知機能が利用できません。サイトをHTTPS環境でお使いください。');
+      }
+    });
+  }
 }
 
 function renderMessageHistory(msgs) {
@@ -955,8 +1051,31 @@ function renderSchedule() { /* used by overview timeline */ }
 // ==========================================
 function getManagedMenuItems() { return loadData('salonMenuItems', JSON.parse(JSON.stringify(DEFAULT_MENU_ITEMS))); }
 function saveManagedMenuItems(items) { saveData('salonMenuItems', items); }
-function getSiteData() { return loadData('salonSiteData', {}); }
-function saveSiteData(data) { saveData('salonSiteData', data); }
+
+// デフォルト値とlocalStorageの保存済みデータをマージして返す
+function getSiteData() {
+  const saved = loadData('salonSiteData', {});
+  // デフォルト値をベースに、保存済みのデータ（null以外）で上書き
+  const merged = { ...DEFAULT_SITE_DATA };
+  Object.keys(saved).forEach(key => {
+    if (saved[key] !== null && saved[key] !== undefined) {
+      merged[key] = saved[key];
+    }
+  });
+  return merged;
+}
+function saveSiteData(data) {
+  try {
+    // 写真データはlocalStorageに保存しない（IndexedDBに別途保存）
+    const dataForStorage = { ...data };
+    delete dataForStorage.profilePhoto;
+    saveData('salonSiteData', dataForStorage);
+    return true;
+  } catch (e) {
+    console.error('saveSiteData error:', e);
+    return false;
+  }
+}
 
 function initSiteManage() { initSiteInfoForm(); initMenuManagement(); initPhotoManagement(); }
 
@@ -983,8 +1102,24 @@ function initSiteInfoForm() {
 
 function loadSiteInfoIntoForm() {
   const data = getSiteData();
-  const fields = {editStylistName:'stylistName',editSalonName:'salonName',editStylistBio:'stylistBio',editInstagram:'instagram',editYearsExp:'yearsExp',editClientsServed:'clientsServed',editRating:'rating',editAddress:'address',editBusinessHours:'businessHours',editClosedDay:'closedDay',editPhone:'phone',editEmail:'email'};
-  Object.entries(fields).forEach(([elId, key]) => { const el = document.getElementById(elId); if (el) el.value = data[key] || ''; });
+  const fields = {
+    editStylistName: 'stylistName',
+    editSalonName: 'salonName',
+    editStylistBio: 'stylistBio',
+    editInstagram: 'instagram',
+    editYearsExp: 'yearsExp',
+    editClientsServed: 'clientsServed',
+    editRating: 'rating',
+    editAddress: 'address',
+    editBusinessHours: 'businessHours',
+    editClosedDay: 'closedDay',
+    editPhone: 'phone',
+    editEmail: 'email'
+  };
+  Object.entries(fields).forEach(([elId, key]) => {
+    const el = document.getElementById(elId);
+    if (el) el.value = data[key] || DEFAULT_SITE_DATA[key] || '';
+  });
 }
 
 function initMenuManagement() {
@@ -1115,15 +1250,99 @@ function saveMenuFromModal() {
 
 function initPhotoManagement() {
   const previewImg = document.getElementById('currentPhoto');
-  const siteData = getSiteData();
-  if (siteData.profilePhoto && previewImg) previewImg.src = siteData.profilePhoto;
+
   document.getElementById('photoUpload')?.addEventListener('change', (e) => {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    console.log('写真アップロード開始:', file.name, 'サイズ:', Math.round(file.size / 1024) + 'KB');
+
+    // 画像をリサイズ
+    resizeImage(file, 800, 1000, 0.9)
+      .then(dataUrl => {
+        console.log('リサイズ完了。base64サイズ:', Math.round(dataUrl.length / 1024) + 'KB');
+
+        // プレビューを即座に更新
+        if (previewImg) previewImg.src = dataUrl;
+
+        // リサイズした画像を stylist.jpg としてダウンロード
+        downloadImage(dataUrl, 'stylist.jpg');
+
+        showToast('stylist.jpg をダウンロードしました。プロジェクトフォルダに配置してデプロイしてください。');
+      })
+      .catch(err => {
+        console.error('画像処理エラー:', err);
+        showToast('画像の処理に失敗しました: ' + err.message);
+      });
+  });
+
+  document.getElementById('resetPhotoBtn')?.addEventListener('click', () => {
+    if (previewImg) previewImg.src = 'stylist.jpg';
+    showToast('デフォルトの写真に戻しました');
+  });
+}
+
+// リサイズした画像をファイルとしてダウンロード
+function downloadImage(dataUrl, filename) {
+  // base64 → Blob
+  const byteString = atob(dataUrl.split(',')[1]);
+  const mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([ab], { type: mimeType });
+
+  // ダウンロードリンク作成
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// 画像をCanvas APIでリサイズ
+function resizeImage(file, maxWidth, maxHeight, quality) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (ev) => { if (previewImg) previewImg.src = ev.target.result; const d = getSiteData(); d.profilePhoto = ev.target.result; saveSiteData(d); showToast('写真を更新しました'); };
+    reader.onerror = () => reject(new Error('ファイル読み込み失敗'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('画像データが不正です'));
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+
+        console.log('元画像サイズ:', w, 'x', h);
+
+        // アスペクト比を維持してリサイズ
+        if (w > maxWidth) {
+          h = Math.round(h * maxWidth / w);
+          w = maxWidth;
+        }
+        if (h > maxHeight) {
+          w = Math.round(w * maxHeight / h);
+          h = maxHeight;
+        }
+
+        console.log('リサイズ後:', w, 'x', h);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        resolve(canvas.toDataURL('image/jpeg', quality || 0.8));
+      };
+      img.src = e.target.result;
+    };
     reader.readAsDataURL(file);
   });
-  document.getElementById('resetPhotoBtn')?.addEventListener('click', () => { if (previewImg) previewImg.src = 'stylist.jpg'; const d = getSiteData(); delete d.profilePhoto; saveSiteData(d); showToast('デフォルトに戻しました'); });
 }
 
 // ==========================================

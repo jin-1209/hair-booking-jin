@@ -2015,3 +2015,255 @@ input, textarea { font-family: inherit; font-size: inherit; }
     flex-direction: column;
   }
 }
+
+/* === Instagram Gallery Section === */
+.instagram-section {
+  background: var(--bg-white);
+}
+
+.ig-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ig-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.ig-item:hover {
+  transform: scale(1.03);
+}
+
+.ig-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.ig-item:hover img {
+  transform: scale(1.1);
+}
+
+.ig-item-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition);
+  gap: 8px;
+  color: white;
+}
+
+.ig-item:hover .ig-item-overlay {
+  opacity: 1;
+}
+
+.ig-item-overlay .ig-likes {
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ig-item-overlay .ig-caption {
+  font-size: 0.75rem;
+  max-width: 80%;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.ig-follow {
+  text-align: center;
+}
+
+.ig-follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: white;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.ig-follow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220,39,67,0.3);
+}
+
+.ig-follow-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 768px) {
+  .ig-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ig-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .ig-item-overlay {
+    opacity: 0;
+  }
+}
+
+/* === Google Maps Enhanced === */
+.access-map-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.map-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.map-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.map-action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.map-action-btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .map-actions {
+    flex-direction: column;
+  }
+}
+
+/* === PWA Install Banner === */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 900;
+  max-width: 420px;
+  width: calc(100% - 48px);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border-light);
+}
+
+.pwa-install-banner.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.pwa-install-banner .pwa-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.pwa-install-banner .pwa-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pwa-install-banner .pwa-text {
+  flex: 1;
+}
+
+.pwa-install-banner .pwa-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.pwa-install-banner .pwa-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.pwa-install-banner .pwa-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-install-banner .pwa-install-btn {
+  padding: 8px 18px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+
+.pwa-install-banner .pwa-install-btn:hover {
+  background: var(--accent-hover);
+}
+
+.pwa-install-banner .pwa-dismiss {
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.pwa-install-banner .pwa-dismiss:hover {
+  color: var(--text-primary);
+}

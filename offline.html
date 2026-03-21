@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIN — オフライン</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: #fef9f3;
+      color: #1c1917;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container {
+      text-align: center;
+      max-width: 480px;
+    }
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 0.95rem;
+      color: #57534e;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .info-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .info-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #d4845a;
+      margin-bottom: 12px;
+    }
+    .info-item {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 0.88rem;
+      color: #57534e;
+    }
+    .info-item span:first-child {
+      font-size: 1.1rem;
+    }
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 36px;
+      background: #d4845a;
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .retry-btn:hover {
+      background: #c0703f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212,132,90,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>インターネットに接続されていません</h1>
+    <p>Wi-Fiまたはモバイルデータの接続をご確認ください。<br>接続が回復したら、自動的にページが表示されます。</p>
+    
+    <div class="info-card">
+      <h3>📞 お急ぎのご予約はこちら</h3>
+      <div class="info-item">
+        <span>📍</span>
+        <span>328 North Bridge Road #02-33<br>Raffles Hotel Arcade, Singapore 188719</span>
+      </div>
+      <div class="info-item">
+        <span>📞</span>
+        <span>+65 6259 3200</span>
+      </div>
+      <div class="info-item">
+        <span>🕐</span>
+        <span>10:00 — 20:00（火曜定休）</span>
+      </div>
+    </div>
+
+    <button class="retry-btn" onclick="window.location.reload()">
+      🔄 再読み込み
+    </button>
+  </div>
+
+  <script>
+    // ネットワーク復帰時に自動リロード
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>
