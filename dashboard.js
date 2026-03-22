@@ -64,9 +64,9 @@ function deletePhotoFromDB(key) {
 const DEFAULT_SITE_DATA = {
   stylistName: 'JIN',
   salonName: 'Beauty Stylist at TOKI+LIM',
-  stylistBio: 'シンガポール在住歴10年以上。TOKI+LIMにて「完全予約制・マンツーマン」スタイルで、お客様一人ひとりに寄り添った施術をご提供しています。',
+  stylistBio: '東京・原宿、表参道、青山で20年間、美容師として技術を磨いてきました。東京の有名サロン2店舗で経験を積んだ後、2015年に兄と共に原宿で独立。2022年には青山にBar併設サロンをオープン。コロナ禍での閉業を経て、白髪ぼかし専門店で3年間の経験を重ね、2025年4月よりシンガポール・ラッフルズホテル内のTOKI+LIMにて、活動の拠点を移しました。',
   instagram: 'https://instagram.com/jinstaglam.hair',
-  yearsExp: '10',
+  yearsExp: '20',
   clientsServed: '3,000',
   rating: '4.9',
   address: '328 North Bridge Road\n#02-33 Raffles Hotel Arcade\nSingapore 188719',
@@ -75,9 +75,9 @@ const DEFAULT_SITE_DATA = {
   phone: '+65 6259 3200',
   email: 'info@tokilim.com',
   heroBadge: '完全予約制 · マンツーマン施術',
-  heroTitle1: 'あなただけの',
-  heroTitle2: '美しさを、引き出す。',
-  heroDesc: 'ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。',
+  heroTitle1: '東京20年の技術を、',
+  heroTitle2: 'シンガポールで。',
+  heroDesc: '原宿・表参道・青山 — 東京のトップサロンで20年磨き上げた技術と感性。完全マンツーマンで、あなただけのスタイルをお届けします。',
   heroCta: '今すぐ予約'
 };
 
