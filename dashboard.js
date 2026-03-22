@@ -73,7 +73,12 @@ const DEFAULT_SITE_DATA = {
   businessHours: '10:00 〜 20:00',
   closedDay: '毎週火曜日',
   phone: '+65 6259 3200',
-  email: 'info@tokilim.com'
+  email: 'info@tokilim.com',
+  heroBadge: '完全予約制 · マンツーマン施術',
+  heroTitle1: 'あなただけの',
+  heroTitle2: '美しさを、引き出す。',
+  heroDesc: 'ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。',
+  heroCta: '今すぐ予約'
 };
 
 // --- Default Data ---
@@ -1119,7 +1124,46 @@ function saveSiteData(data) {
   }
 }
 
-function initSiteManage() { initSiteInfoForm(); initMenuManagement(); initPhotoManagement(); }
+function initSiteManage() { initHeroTextForm(); initSiteInfoForm(); initMenuManagement(); initPhotoManagement(); }
+
+function initHeroTextForm() {
+  const form = document.getElementById('heroTextForm');
+  if (!form) return;
+  loadHeroTextIntoForm();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = getSiteData();
+    ['heroBadge','heroTitle1','heroTitle2','heroDesc','heroCta'].forEach(key => {
+      const el = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1));
+      if (el) data[key] = el.value.trim() || null;
+    });
+    saveSiteData(data);
+    showToast('トップページの文章を保存しました');
+  });
+  document.getElementById('resetHeroTextBtn')?.addEventListener('click', () => {
+    if (!confirm('デフォルトに戻しますか？')) return;
+    const data = getSiteData();
+    ['heroBadge','heroTitle1','heroTitle2','heroDesc','heroCta'].forEach(k => delete data[k]);
+    saveSiteData(data);
+    loadHeroTextIntoForm();
+    showToast('リセットしました');
+  });
+}
+
+function loadHeroTextIntoForm() {
+  const data = getSiteData();
+  const fields = {
+    editHeroBadge: 'heroBadge',
+    editHeroTitle1: 'heroTitle1',
+    editHeroTitle2: 'heroTitle2',
+    editHeroDesc: 'heroDesc',
+    editHeroCta: 'heroCta'
+  };
+  Object.entries(fields).forEach(([elId, key]) => {
+    const el = document.getElementById(elId);
+    if (el) el.value = data[key] || DEFAULT_SITE_DATA[key] || '';
+  });
+}
 
 function initSiteInfoForm() {
   const form = document.getElementById('siteInfoForm');

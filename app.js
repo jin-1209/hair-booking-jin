@@ -739,6 +739,28 @@ function applySiteData() {
     });
   }
 
+  // Apply hero text
+  if (data.heroBadge) {
+    const badgeEl = document.querySelector('[data-i18n="hero_badge"]');
+    if (badgeEl) badgeEl.textContent = data.heroBadge;
+  }
+  if (data.heroTitle1) {
+    const t1 = document.querySelector('[data-i18n="hero_title_1"]');
+    if (t1) t1.textContent = data.heroTitle1;
+  }
+  if (data.heroTitle2) {
+    const t2 = document.querySelector('[data-i18n="hero_title_2"]');
+    if (t2) t2.textContent = data.heroTitle2;
+  }
+  if (data.heroDesc) {
+    const descEl = document.querySelector('[data-i18n="hero_desc"]');
+    if (descEl) descEl.textContent = data.heroDesc;
+  }
+  if (data.heroCta) {
+    const ctaEl = document.querySelector('[data-i18n="hero_cta"]');
+    if (ctaEl) ctaEl.textContent = data.heroCta;
+  }
+
   // Apply hero stats
   if (data.yearsExp) {
     const nums = document.querySelectorAll('.trust-num');

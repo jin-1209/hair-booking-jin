@@ -522,6 +522,19 @@
     <!-- ========== Site Management Section ========== -->
     <section class="section" id="sectionSitemanage">
       <div class="card mgmt-card">
+        <div class="card-header"><h3>トップページ文章</h3></div>
+        <form id="heroTextForm" class="site-info-form">
+          <div class="form-group"><label>バッジテキスト</label><input type="text" id="editHeroBadge" placeholder="完全予約制 · マンツーマン施術"></div>
+          <div class="form-row">
+            <div class="form-group"><label>タイトル 1行目</label><input type="text" id="editHeroTitle1" placeholder="あなただけの"></div>
+            <div class="form-group"><label>タイトル 2行目 (アクセント)</label><input type="text" id="editHeroTitle2" placeholder="美しさを、引き出す。"></div>
+          </div>
+          <div class="form-group"><label>説明文</label><textarea id="editHeroDesc" rows="3" placeholder="ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。"></textarea></div>
+          <div class="form-group"><label>CTAボタン テキスト</label><input type="text" id="editHeroCta" placeholder="今すぐ予約"></div>
+          <div class="modal-actions" style="padding-top:12px;"><button type="button" class="btn-cancel" id="resetHeroTextBtn">リセット</button><button type="submit" class="btn-save">保存</button></div>
+        </form>
+      </div>
+      <div class="card mgmt-card">
         <div class="card-header"><h3>プロフィール写真</h3></div>
         <div class="photo-mgmt">
           <div class="photo-preview" id="photoPreview"><img src="stylist.jpg" alt="現在の写真" id="currentPhoto"></div>
