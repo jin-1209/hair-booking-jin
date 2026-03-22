@@ -613,7 +613,12 @@ const DEFAULT_SITE_DATA = {
   businessHours: '10:00 〜 20:00',
   closedDay: '毎週火曜日',
   phone: '+65 6259 3200',
-  email: 'info@tokilim.com'
+  email: 'info@tokilim.com',
+  heroBadge: '完全予約制 · マンツーマン施術',
+  heroTitle1: 'あなただけの',
+  heroTitle2: '美しさを、引き出す。',
+  heroDesc: 'ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。',
+  heroCta: '今すぐ予約'
 };
 
 // Load saved site data from localStorage (dashboard edits)
