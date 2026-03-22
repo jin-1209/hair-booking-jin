@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JIN — Beauty Stylist | Singapore 予約サイト</title>
-  <meta name="description" content="シンガポールTOKI+LIMのスタイリストJINの予約サイト。ヘア・ネイル・エステ・マツエクなど、マンツーマンで最高の施術をご提供します。">
+  <title>JIN — Beauty Stylist | Singapore Booking</title>
+  <meta name="description" content="Book your appointment with JIN at TOKI+LIM Singapore. Personalized one-on-one beauty services including hair, nails, facials, and eyelash extensions.">
   <meta property="og:title" content="JIN — Beauty Stylist at TOKI+LIM">
-  <meta property="og:description" content="マンツーマン施術の予約サイト。ヘア・ネイル・エステ・マツエク対応。">
+  <meta property="og:description" content="One-on-one personalized beauty services. Hair, nails, facials, eyelash extensions.">
   <meta property="og:type" content="website">
   <!-- PWA -->
   <meta name="theme-color" content="#d4845a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="JIN予約">
+  <meta name="apple-mobile-web-app-title" content="JIN Booking">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,11 +29,11 @@
         <span class="logo-text">JIN</span>
       </a>
       <nav class="main-nav" id="mainNav">
-        <a href="#top" class="nav-link active" data-i18n="nav_top">トップ</a>
-        <a href="#booking" class="nav-link" data-i18n="nav_booking">予約</a>
-        <a href="#menu" class="nav-link" data-i18n="nav_menu">メニュー</a>
-        <a href="#stylist" class="nav-link" data-i18n="nav_stylist">スタイリスト</a>
-        <a href="#access" class="nav-link" data-i18n="nav_access">アクセス</a>
+        <a href="#top" class="nav-link active" data-i18n="nav_top">Top</a>
+        <a href="#booking" class="nav-link" data-i18n="nav_booking">Booking</a>
+        <a href="#menu" class="nav-link" data-i18n="nav_menu">Menu</a>
+        <a href="#stylist" class="nav-link" data-i18n="nav_stylist">Stylist</a>
+        <a href="#access" class="nav-link" data-i18n="nav_access">Access</a>
       </nav>
       <div class="header-actions">
         <!-- Language Switcher -->
@@ -58,8 +58,8 @@
         <a href="mypage.html" class="header-mypage" title="マイページ">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </a>
-        <a href="#booking" class="header-cta" data-i18n="header_cta">予約する</a>
-        <button class="mobile-toggle" id="mobileToggle" aria-label="メニューを開く">
+        <a href="#booking" class="header-cta" data-i18n="header_cta">Book Now</a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Open menu">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -71,20 +71,20 @@
     <div class="hero-bg-gradient"></div>
     <div class="hero-content">
       <div class="hero-text">
-        <div class="hero-badge animate-in" data-i18n="hero_badge">完全予約制 · マンツーマン施術</div>
+        <div class="hero-badge animate-in" data-i18n="hero_badge">By Appointment · One-on-One Service</div>
         <h1 class="hero-title animate-in">
-          <span class="hero-title-line" data-i18n="hero_title_1">あなただけの</span>
-          <span class="hero-title-line hero-title-accent" data-i18n="hero_title_2">美しさを、引き出す。</span>
+          <span class="hero-title-line" data-i18n="hero_title_1">Discover Your</span>
+          <span class="hero-title-line hero-title-accent" data-i18n="hero_title_2">Unique Beauty.</span>
         </h1>
-        <p class="hero-desc animate-in" data-i18n="hero_desc">ヘア・ネイル・エステ・マツエク — マンツーマンだからこそ実現する、一人ひとりに寄り添ったパーソナル施術。</p>
+        <p class="hero-desc animate-in" data-i18n="hero_desc">Personalized hair styling tailored to your facial structure, hair type, and lifestyle. Experience the difference of one-on-one care.</p>
         <div class="hero-buttons animate-in">
-          <a href="#booking" class="btn btn-accent" data-i18n="hero_cta">今すぐ予約</a>
-          <a href="#menu" class="btn btn-ghost" data-i18n="hero_menu">メニューを見る</a>
+          <a href="#booking" class="btn btn-accent" data-i18n="hero_cta">Book Now</a>
+          <a href="#menu" class="btn btn-ghost" data-i18n="hero_menu">View Menu</a>
         </div>
         <div class="hero-trust animate-in">
           <div class="trust-item">
             <span class="trust-num">10+</span>
-            <span class="trust-label" data-i18n="trust_exp">年の経験</span>
+            <span class="trust-label" data-i18n="trust_exp">Years Exp.</span>
           </div>
         </div>
       </div>
@@ -96,8 +96,8 @@
         <div class="hero-floating-card">
           <div class="floating-icon">✨</div>
           <div>
-            <div class="floating-title" data-i18n="floating_title">次の空き枠</div>
-            <div class="floating-time" id="nextSlot">本日 14:00〜</div>
+            <div class="floating-title" data-i18n="floating_title">Next available</div>
+            <div class="floating-time" id="nextSlot">Today 14:00~</div>
           </div>
         </div>
       </div>
@@ -108,60 +108,60 @@
   <section class="section booking-section" id="booking">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="booking_badge">Booking</div>
-      <h2 class="section-title animate-in" data-i18n="booking_title">ご予約</h2>
-      <p class="section-subtitle animate-in" data-i18n="booking_subtitle">3ステップで簡単予約。お好みのメニューと日時をお選びください。</p>
+      <h2 class="section-title animate-in" data-i18n="booking_title">Booking</h2>
+      <p class="section-subtitle animate-in" data-i18n="booking_subtitle">Book in 3 easy steps. Choose your preferred service and date.</p>
 
       <div class="booking-container">
         <!-- Progress Steps -->
         <div class="progress-bar animate-in">
           <div class="progress-step active" data-step="1">
             <div class="step-circle">1</div>
-            <span data-i18n="step1_label">日時選択</span>
+            <span data-i18n="step1_label">Date & Time</span>
           </div>
           <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
           <div class="progress-step" data-step="2">
             <div class="step-circle">2</div>
-            <span data-i18n="step2_label">メニュー選択</span>
+            <span data-i18n="step2_label">Select Service</span>
           </div>
           <div class="progress-line"><div class="progress-fill"></div></div>
           <div class="progress-step" data-step="3">
             <div class="step-circle">3</div>
-            <span data-i18n="step3_label">お客様情報</span>
+            <span data-i18n="step3_label">Your Info</span>
           </div>
         </div>
 
         <!-- Step 1: Date & Time -->
         <div class="booking-panel active" id="bookingStep1">
-          <h3 class="panel-heading" data-i18n="panel1_title">日時をお選びください</h3>
+          <h3 class="panel-heading" data-i18n="panel1_title">Choose date & time</h3>
           <div class="calendar-card">
             <div class="calendar-nav">
-              <button class="cal-arrow" id="calPrev" aria-label="前の月">‹</button>
+              <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>
               <span class="cal-month-label" id="calMonth"></span>
-              <button class="cal-arrow" id="calNext" aria-label="次の月">›</button>
+              <button class="cal-arrow" id="calNext" aria-label="Next month">›</button>
             </div>
             <div class="calendar-weekdays" id="calendarWeekdays">
-              <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
             </div>
             <div class="calendar-grid" id="calendarGrid"></div>
           </div>
           <div class="time-slots-area" id="timeSlotsContainer" style="display:none;">
-            <h4 class="time-heading" data-i18n="time_select">時間帯を選択</h4>
+            <h4 class="time-heading" data-i18n="time_select">Select a time</h4>
             <div class="time-slots-grid" id="timeSlots"></div>
           </div>
           <div class="panel-actions">
-            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">次へ進む →</button>
+            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">Next →</button>
           </div>
         </div>
 
         <!-- Step 2: Menu Selection -->
         <div class="booking-panel" id="bookingStep2">
-          <h3 class="panel-heading" data-i18n="panel2_title">メニューをお選びください</h3>
+          <h3 class="panel-heading" data-i18n="panel2_title">Select a service</h3>
           <div class="booking-menu-list" id="bookingMenuList">
             <!-- Rendered by JS -->
           </div>
           <div class="panel-actions panel-actions-split">
-            <button class="btn btn-outline-subtle" id="backToStep1" data-i18n="btn_back">← 戻る</button>
-            <button class="btn btn-accent btn-lg" id="toStep3" disabled data-i18n="btn_next">次へ進む →</button>
+            <button class="btn btn-outline-subtle" id="backToStep1" data-i18n="btn_back">← Back</button>
+            <button class="btn btn-accent btn-lg" id="toStep3" disabled data-i18n="btn_next">Next →</button>
           </div>
         </div>
 
@@ -220,9 +220,9 @@
       <div class="modal-check">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
-      <h3 class="modal-heading" data-i18n="modal_title">ご予約ありがとうございます</h3>
+      <h3 class="modal-heading" data-i18n="modal_title">Thank you for your booking</h3>
       <p class="modal-body" id="modalText"></p>
-      <button class="btn btn-accent btn-lg btn-full" id="modalClose" data-i18n="modal_close">閉じる</button>
+      <button class="btn btn-accent btn-lg btn-full" id="modalClose" data-i18n="modal_close">Close</button>
     </div>
   </div>
 
@@ -230,8 +230,8 @@
   <section class="section quick-calendar-section" id="quickCalendar">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="cal_badge">Schedule</div>
-      <h2 class="section-title animate-in" data-i18n="cal_title">予約状況カレンダー</h2>
-      <p class="section-subtitle animate-in" data-i18n="cal_subtitle">空き状況を確認して、お好きな日に予約できます。</p>
+      <h2 class="section-title animate-in" data-i18n="cal_title">Booking Calendar</h2>
+      <p class="section-subtitle animate-in" data-i18n="cal_subtitle">Check availability and book your preferred date.</p>
       <div class="qcal-card animate-in">
         <div class="qcal-header">
           <button class="qcal-nav" id="qcalPrev">‹</button>
@@ -241,9 +241,9 @@
         <div class="qcal-weekdays" id="qcalWeekdays"></div>
         <div class="qcal-grid" id="qcalGrid"></div>
         <div class="qcal-legend">
-          <span class="qcal-legend-item"><span class="qcal-dot available"></span> <span data-i18n="cal_available">予約可能</span></span>
-          <span class="qcal-legend-item"><span class="qcal-dot holiday"></span> <span data-i18n="cal_holiday">定休日</span></span>
-          <span class="qcal-legend-item"><span class="qcal-dot past"></span> <span data-i18n="cal_past">過去</span></span>
+          <span class="qcal-legend-item"><span class="qcal-dot available"></span> <span data-i18n="cal_available">Available</span></span>
+          <span class="qcal-legend-item"><span class="qcal-dot holiday"></span> <span data-i18n="cal_holiday">Closed</span></span>
+          <span class="qcal-legend-item"><span class="qcal-dot past"></span> <span data-i18n="cal_past">Past</span></span>
         </div>
       </div>
     </div>
@@ -253,8 +253,8 @@
   <section class="section menu-section" id="menu">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="menu_badge">Menu</div>
-      <h2 class="section-title animate-in" data-i18n="menu_title">施術メニュー</h2>
-      <p class="section-subtitle animate-in" data-i18n="menu_subtitle">すべてマンツーマンの施術です。お一人おひとりに合わせた最適なメニューをご提案します。</p>
+      <h2 class="section-title animate-in" data-i18n="menu_title">Service Menu</h2>
+      <p class="section-subtitle animate-in" data-i18n="menu_subtitle">All services are one-on-one. We recommend the best style for each individual.</p>
       <div class="menu-grid" id="menuGrid">
         <!-- Rendered by JS -->
       </div>
@@ -265,8 +265,8 @@
   <section class="section reviews-section" id="reviews">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="reviews_badge">Reviews</div>
-      <h2 class="section-title animate-in" data-i18n="reviews_title">お客様の声</h2>
-      <p class="section-subtitle animate-in" data-i18n="reviews_subtitle">ご来店いただいたお客様からの口コミをご紹介します。</p>
+      <h2 class="section-title animate-in" data-i18n="reviews_title">Customer Reviews</h2>
+      <p class="section-subtitle animate-in" data-i18n="reviews_subtitle">Hear what our clients have to say about their experience.</p>
       <div class="reviews-summary animate-in">
         <div class="reviews-avg">
           <span class="reviews-avg-num" id="reviewsAvgNum">5.0</span>
@@ -284,37 +284,37 @@
   <section class="section referral-section" id="referral">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="referral_badge">Referral</div>
-      <h2 class="section-title animate-in" data-i18n="referral_title">お友達紹介プログラム</h2>
-      <p class="section-subtitle animate-in" data-i18n="referral_subtitle">お友達を紹介してください。ご紹介者もお友達も特典があります。</p>
+      <h2 class="section-title animate-in" data-i18n="referral_title">Refer a Friend</h2>
+      <p class="section-subtitle animate-in" data-i18n="referral_subtitle">Share with friends. Both you and your friend receive benefits.</p>
       <div class="referral-card animate-in">
         <div class="referral-steps">
           <div class="ref-step">
             <div class="ref-step-num">1</div>
             <div class="ref-step-text">
-              <h4 data-i18n="ref_step1_title">コードをシェア</h4>
-              <p data-i18n="ref_step1_desc">下の紹介リンクをお友達に送るだけ。</p>
+              <h4 data-i18n="ref_step1_title">Share the Code</h4>
+              <p data-i18n="ref_step1_desc">Just send the referral link below to your friend.</p>
             </div>
           </div>
           <div class="ref-step">
             <div class="ref-step-num">2</div>
             <div class="ref-step-text">
-              <h4 data-i18n="ref_step2_title">お友達が予約</h4>
-              <p data-i18n="ref_step2_desc">お友達が紹介コードを使って予約。</p>
+              <h4 data-i18n="ref_step2_title">Friend Books</h4>
+              <p data-i18n="ref_step2_desc">Your friend books using the referral code.</p>
             </div>
           </div>
           <div class="ref-step">
             <div class="ref-step-num">3</div>
             <div class="ref-step-text">
-              <h4 data-i18n="ref_step3_title">特典をGET</h4>
-              <p data-i18n="ref_step3_desc">お二人とも次回の施術がお得に。</p>
+              <h4 data-i18n="ref_step3_title">Get Rewards</h4>
+              <p data-i18n="ref_step3_desc">Both of you get a discount on your next visit.</p>
             </div>
           </div>
         </div>
         <div class="referral-share">
-          <label data-i18n="ref_share_label">あなたの紹介リンク</label>
+          <label data-i18n="ref_share_label">Your Referral Link</label>
           <div class="referral-url-box">
             <input type="text" id="referralUrl" readonly>
-            <button type="button" class="btn btn-accent btn-copy" id="copyReferralBtn" data-i18n="ref_copy">コピー</button>
+            <button type="button" class="btn btn-accent btn-copy" id="copyReferralBtn" data-i18n="ref_copy">Copy</button>
           </div>
           <p class="referral-note" id="copyFeedback"></p>
         </div>
@@ -326,7 +326,7 @@
   <section class="section stylist-section" id="stylist">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="stylist_badge">About</div>
-      <h2 class="section-title animate-in" data-i18n="stylist_title">スタイリスト紹介</h2>
+      <h2 class="section-title animate-in" data-i18n="stylist_title">About the Stylist</h2>
       <div class="stylist-card animate-in">
         <div class="stylist-photo">
           <img src="stylist.jpg" alt="JIN" id="stylistImg">
@@ -334,12 +334,12 @@
         <div class="stylist-info">
           <h3 class="stylist-name">JIN</h3>
           <p class="stylist-role" data-i18n="stylist_role">Beauty Stylist at TOKI+LIM</p>
-          <p class="stylist-bio" data-i18n="stylist_bio">東京都内の有名サロンで経験を積み、数々のヘアコンテストで入賞。お客様一人ひとりの骨格・髪質・ライフスタイルに合わせた、再現性の高いスタイルをご提案いたします。マンツーマンでの施術にこだわり、最高のリラックス空間を提供します。</p>
+          <p class="stylist-bio" data-i18n="stylist_bio">With over 10 years of experience at renowned salons in Tokyo, I specialize in creating styles tailored to each client's unique features. I provide one-on-one treatments in a relaxing, private atmosphere.</p>
           <div class="stylist-tags">
-            <span class="tag" data-i18n="tag_hair">ヘアスタイリング</span>
-            <span class="tag" data-i18n="tag_color">カラーリング</span>
-            <span class="tag" data-i18n="tag_treatment">トリートメント</span>
-            <span class="tag" data-i18n="tag_consultation">骨格診断</span>
+            <span class="tag" data-i18n="tag_hair">Hair Styling</span>
+            <span class="tag" data-i18n="tag_color">Coloring</span>
+            <span class="tag" data-i18n="tag_treatment">Treatment</span>
+            <span class="tag" data-i18n="tag_consultation">Face Shape Analysis</span>
           </div>
           <div class="stylist-socials">
             <a href="https://instagram.com/jinstaglam.hair" target="_blank" class="social-link" aria-label="Instagram">
@@ -364,15 +364,15 @@
   <section class="section instagram-section" id="instagram">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="ig_badge">Gallery</div>
-      <h2 class="section-title animate-in" data-i18n="ig_title">最新のスタイル</h2>
-      <p class="section-subtitle animate-in" data-i18n="ig_subtitle">Instagramで最新の施術事例をご覧ください。</p>
+      <h2 class="section-title animate-in" data-i18n="ig_title">Latest Styles</h2>
+      <p class="section-subtitle animate-in" data-i18n="ig_subtitle">Check out our latest work on Instagram.</p>
       <div class="ig-grid animate-in" id="igGrid">
         <!-- JS で描画 -->
       </div>
       <div class="ig-follow animate-in">
         <a href="https://instagram.com/jinstaglam.hair" target="_blank" class="ig-follow-btn" id="igFollowBtn">
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-          <span data-i18n="ig_follow">@jinstaglam.hair をフォロー</span>
+          <span data-i18n="ig_follow">Follow @jinstaglam.hair</span>
         </a>
       </div>
     </div>
@@ -382,35 +382,35 @@
   <section class="section access-section" id="access">
     <div class="container">
       <div class="section-badge animate-in" data-i18n="access_badge">Access</div>
-      <h2 class="section-title animate-in" data-i18n="access_title">サロン情報</h2>
+      <h2 class="section-title animate-in" data-i18n="access_title">Salon Information</h2>
       <div class="access-layout">
         <div class="access-details animate-in">
           <div class="detail-item">
             <div class="detail-icon">📍</div>
             <div>
-              <h4 data-i18n="info_address">住所</h4>
+              <h4 data-i18n="info_address">Address</h4>
               <p data-i18n="info_address_value" data-i18n-html="true">328 North Bridge Road #02-33<br>Raffles Hotel Arcade<br>Singapore 188719</p>
             </div>
           </div>
           <div class="detail-item">
             <div class="detail-icon">🕐</div>
             <div>
-              <h4 data-i18n="info_hours">営業時間</h4>
-              <p data-i18n="info_hours_value">10:00 〜 20:00（最終受付 19:00）</p>
-              <p class="detail-sub" data-i18n="info_closed">定休日：毎週火曜日</p>
+              <h4 data-i18n="info_hours">Hours</h4>
+              <p data-i18n="info_hours_value">10:00 — 20:00 (Last reception 19:00)</p>
+              <p class="detail-sub" data-i18n="info_closed">Closed: Every Tuesday</p>
             </div>
           </div>
           <div class="detail-item">
             <div class="detail-icon">📞</div>
             <div>
-              <h4 data-i18n="info_phone">電話番号</h4>
+              <h4 data-i18n="info_phone">Phone</h4>
               <p>+65 6259 3200</p>
             </div>
           </div>
           <div class="detail-item">
             <div class="detail-icon">✉️</div>
             <div>
-              <h4 data-i18n="info_email">メール</h4>
+              <h4 data-i18n="info_email">Email</h4>
               <p>info@tokilim.com</p>
             </div>
           </div>
@@ -426,11 +426,11 @@
           <div class="map-actions">
             <a href="https://www.google.com/maps/dir/?api=1&destination=328+North+Bridge+Road+%2302-33+Singapore+188719" target="_blank" class="map-action-btn" data-i18n="map_directions">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-              経路を検索
+              Get Directions
             </a>
             <a href="https://www.google.com/maps/place/Raffles+Hotel+Arcade/@1.2948,103.8536,17z" target="_blank" class="map-action-btn" data-i18n="map_larger">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 3h6v6M14 10l6.1-6.1M9 21H3v-6M10 14l-6.1 6.1"/></svg>
-              大きな地図で開く
+              View Larger Map
             </a>
           </div>
         </div>
@@ -446,7 +446,7 @@
           <span>JIN at TOKI+LIM</span>
         </div>
         <p class="footer-copy">&copy; 2026 JIN at TOKI+LIM. All rights reserved.</p>
-        <a href="dashboard.html" class="admin-link" title="スタッフログイン">
+        <a href="dashboard.html" class="admin-link" title="Staff Login">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         </a>
       </div>
