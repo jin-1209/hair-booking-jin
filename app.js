@@ -36,15 +36,13 @@ const GOOGLE_SHEETS_CONFIG = {
 
 // ==========================================
 // Twilio SMS Configuration
-// Twilioアカウントの情報を設定してください
-// https://www.twilio.com でアカウント作成
+// Vercel環境変数にTwilio認証情報を設定してください
 // ==========================================
 const TWILIO_CONFIG = {
-  enabled: false,
-  // サーバーレス関数のURL（Cloud Functions等でデプロイ）
-  functionUrl: '',
-  // 美容師の電話番号（SMS通知先）
-  stylistPhone: '+6562593200'
+  enabled: true,
+  // Vercelサーバーレス関数のURL
+  smsUrl: '/api/send-sms',
+  reminderUrl: '/api/send-reminder'
 };
 
 // ==========================================
@@ -1175,15 +1173,15 @@ function handleSubmit(e) {
     price: menuPrice
   });
 
-  // SMS通知を送信（Twilio設定済みの場合）
+  // SMS通知を送信（Twilio経由）
   sendSMSNotification({
     customerName: name,
     customerPhone: phone,
+    customerEmail: email,
     menuName: menuName,
     dateStr: dateStr,
     time: state.selectedTime || '',
-    price: menuPrice,
-    note: note
+    price: menuPrice
   });
 
   const modalText = document.getElementById('modalText');
@@ -2087,41 +2085,75 @@ function sendBookingNotification(bookingData) {
 }
 
 // ==========================================
-// SMS 通知（Twilio連携）
+// SMS 通知（Twilio via Vercel API）
 // ==========================================
+
+// ① 予約確認SMS
 function sendSMSNotification(data) {
-  if (!TWILIO_CONFIG.enabled || !TWILIO_CONFIG.functionUrl) {
-    console.log('SMS通知は無効です（Twilio未設定）');
+  if (!TWILIO_CONFIG.enabled) {
+    console.log('SMS通知は無効です');
     return Promise.resolve(false);
   }
 
-  const smsPayload = {
-    to: TWILIO_CONFIG.stylistPhone,
-    message: [
-      `【新規予約】`,
-      `お客様: ${data.customerName}`,
-      `電話: ${data.customerPhone}`,
-      `メニュー: ${data.menuName}`,
-      `日時: ${data.dateStr} ${data.time}`,
-      `料金: ${data.price}`,
-      data.note ? `備考: ${data.note}` : ''
-    ].filter(Boolean).join('\n')
-  };
-
-  // サーバーレス関数経由でTwilio APIを呼び出し
-  return fetch(TWILIO_CONFIG.functionUrl, {
+  return fetch(TWILIO_CONFIG.smsUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(smsPayload)
+    body: JSON.stringify({
+      type: 'confirmation',
+      to: data.customerPhone,
+      customerName: data.customerName,
+      menuName: data.menuName,
+      date: data.dateStr,
+      time: data.time,
+      price: data.price,
+      phone: data.customerPhone,
+      email: data.customerEmail || ''
+    })
   })
   .then(res => res.json())
   .then(result => {
-    console.log(t('sms_sent'), result);
+    console.log('予約確認SMS送信完了:', result);
     return true;
   })
   .catch(err => {
-    console.error('SMS送信エラー:', err);
+    console.error('予約確認SMS送信エラー:', err);
     return false;
   });
 }
 
+// ③ キャンセル通知SMS
+function sendCancellationSMS(booking) {
+  if (!TWILIO_CONFIG.enabled) {
+    console.log('SMS通知は無効です');
+    return Promise.resolve(false);
+  }
+
+  const phone = booking.phone || booking.customerPhone;
+  if (!phone) {
+    console.log('電話番号がないためSMS送信をスキップ');
+    return Promise.resolve(false);
+  }
+
+  return fetch(TWILIO_CONFIG.smsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'cancellation',
+      to: phone,
+      customerName: booking.client || booking.customerName,
+      menuName: booking.menu || booking.menuName,
+      date: booking.date,
+      time: booking.time,
+      phone: phone
+    })
+  })
+  .then(res => res.json())
+  .then(result => {
+    console.log('キャンセル通知SMS送信完了:', result);
+    return true;
+  })
+  .catch(err => {
+    console.error('キャンセル通知SMS送信エラー:', err);
+    return false;
+  });
+}

@@ -275,7 +275,16 @@ function renderBookingsTable(filter, query) {
   data.sort((a,b) => (b.date + b.time).localeCompare(a.date + a.time));
   if (filter && filter !== 'all') data = data.filter(b => b.status === filter);
   if (query) { const q = query.toLowerCase(); data = data.filter(b => b.client.toLowerCase().includes(q) || b.menu.toLowerCase().includes(q)); }
-  tb.innerHTML = data.map(b => `
+  tb.innerHTML = data.map(b => {
+    let actions = '';
+    if (b.status === 'pending') {
+      actions = `<button class="action-btn" onclick="changeBookingStatus('${b.id}', 'confirm')">確定</button> <button class="action-btn cancel-btn" onclick="changeBookingStatus('${b.id}', 'cancel')">キャンセル</button>`;
+    } else if (b.status === 'confirmed') {
+      actions = `<button class="action-btn" onclick="changeBookingStatus('${b.id}', 'complete')">完了</button> <button class="action-btn cancel-btn" onclick="changeBookingStatus('${b.id}', 'cancel')">キャンセル</button>`;
+    } else {
+      actions = `<span class="text-muted">—</span>`;
+    }
+    return `
     <tr>
       <td><span class="booking-id">${b.id}</span></td>
       <td>${b.client}</td>
@@ -283,17 +292,50 @@ function renderBookingsTable(filter, query) {
       <td>${b.date} ${b.time}</td>
       <td>$${b.price}</td>
       <td><span class="status-badge st-${b.status}">${statusLabels[b.status]}</span></td>
-      <td><button class="action-btn" onclick="changeBookingStatus('${b.id}')">${b.status === 'confirmed' ? '完了' : b.status === 'pending' ? '確定' : '詳細'}</button></td>
-    </tr>`).join('');
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
 }
 
-function changeBookingStatus(bookingId) {
+function changeBookingStatus(bookingId, action) {
   const bookings = getBookings();
   const b = bookings.find(x => x.id === bookingId);
   if (!b) return;
-  if (b.status === 'pending') { b.status = 'confirmed'; showToast('予約を確定しました'); }
-  else if (b.status === 'confirmed') { b.status = 'completed'; showToast('施術完了にしました'); }
-  else { return; }
+
+  if (action === 'confirm' && b.status === 'pending') {
+    b.status = 'confirmed';
+    showToast('予約を確定しました');
+  } else if (action === 'complete' && b.status === 'confirmed') {
+    b.status = 'completed';
+    showToast('施術完了にしました');
+  } else if (action === 'cancel' && (b.status === 'pending' || b.status === 'confirmed')) {
+    if (!confirm(`${b.client}の予約をキャンセルしますか？\n${b.menu} - ${b.date} ${b.time}`)) return;
+    b.status = 'cancelled';
+    showToast('予約をキャンセルしました');
+
+    // キャンセルSMS送信
+    if (b.phone) {
+      fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'cancellation',
+          to: b.phone,
+          customerName: b.client,
+          menuName: b.menu,
+          date: b.date,
+          time: b.time,
+          phone: b.phone
+        })
+      })
+      .then(r => r.json())
+      .then(result => console.log('キャンセルSMS送信:', result))
+      .catch(err => console.error('キャンセルSMS送信エラー:', err));
+    }
+  } else {
+    return;
+  }
+
   saveBookings(bookings);
   renderBookingsTable();
   renderRecentBookings();

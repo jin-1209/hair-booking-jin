@@ -712,6 +712,16 @@ img { max-width:100%; display:block; }
   color: var(--color-accent);
 }
 
+.action-btn.cancel-btn {
+  border-color: rgba(231, 76, 60, 0.3);
+  color: var(--color-error);
+}
+
+.action-btn.cancel-btn:hover {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
 /* ========================================
    Schedule Grid
    ======================================== */
