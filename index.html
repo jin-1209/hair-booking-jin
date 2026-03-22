@@ -167,38 +167,17 @@
 
         <!-- Step 3: Customer Info -->
         <div class="booking-panel" id="bookingStep3">
-          <h3 class="panel-heading" data-i18n="panel3_title">お客様情報をご入力ください</h3>
+          <h3 class="panel-heading" data-i18n="panel3_title">Enter your phone number</h3>
           <form class="booking-form" id="bookingForm">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="customerName" data-i18n="label_name" data-i18n-html="true">お名前 <span class="req">*</span></label>
-                <input type="text" id="customerName" data-i18n-placeholder="placeholder_name" placeholder="田中 花子" required>
-              </div>
-              <div class="form-group">
-                <label for="customerPhone" data-i18n="label_phone" data-i18n-html="true">電話番号 <span class="req">*</span></label>
-                <input type="tel" id="customerPhone" data-i18n-placeholder="placeholder_phone" placeholder="090-1234-5678" required>
-              </div>
-            </div>
             <div class="form-group">
-              <label for="customerEmail" data-i18n="label_email">メールアドレス</label>
-              <input type="email" id="customerEmail" placeholder="example@email.com">
-            </div>
-            <div class="form-group">
-              <label for="customerNote" data-i18n="label_note">ご要望・メッセージ</label>
-              <textarea id="customerNote" rows="3" data-i18n-placeholder="placeholder_note" placeholder="ご要望がありましたらお書きください"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="promoCode" data-i18n="label_promo">紹介コード / プロモコード</label>
-              <div class="promo-input-wrap">
-                <input type="text" id="promoCode" data-i18n-placeholder="placeholder_promo" placeholder="コードを入力 (任意)" style="text-transform: uppercase;">
-                <span class="promo-status" id="promoStatus"></span>
-              </div>
+              <label for="customerPhone" data-i18n="label_phone" data-i18n-html="true">Phone Number <span class="req">*</span></label>
+              <input type="tel" id="customerPhone" data-i18n-placeholder="placeholder_phone" placeholder="+65 9123 4567" required>
             </div>
             <!-- Summary Card -->
             <div class="summary-card" id="bookingSummary"></div>
             <div class="panel-actions panel-actions-split">
-              <button type="button" class="btn btn-outline-subtle" id="backToStep2" data-i18n="btn_back">← 戻る</button>
-              <button type="submit" class="btn btn-accent btn-lg" data-i18n="btn_submit">予約を確定する ✓</button>
+              <button type="button" class="btn btn-outline-subtle" id="backToStep2" data-i18n="btn_back">← Back</button>
+              <button type="submit" class="btn btn-accent btn-lg" data-i18n="btn_submit">Confirm Booking ✓</button>
             </div>
           </form>
         </div>

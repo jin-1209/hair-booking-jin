@@ -125,10 +125,10 @@ const TRANSLATIONS = {
     booking_subtitle: '3ステップで簡単予約。お好みのメニューと日時をお選びください。',
     step1_label: '日時選択',
     step2_label: 'メニュー選択',
-    step3_label: 'お客様情報',
+    step3_label: '電話番号',
     panel1_title: '日時をお選びください',
     panel2_title: 'メニューをお選びください',
-    panel3_title: 'お客様情報をご入力ください',
+    panel3_title: '電話番号を入力してください',
     btn_next: '次へ進む →',
     btn_back: '← 戻る',
     btn_submit: '予約を確定する ✓',
@@ -234,10 +234,10 @@ const TRANSLATIONS = {
     booking_subtitle: 'Book in 3 easy steps. Choose your preferred service and date.',
     step1_label: 'Date & Time',
     step2_label: 'Select Service',
-    step3_label: 'Your Info',
+    step3_label: 'Phone',
     panel1_title: 'Choose date & time',
     panel2_title: 'Select a service',
-    panel3_title: 'Enter your information',
+    panel3_title: 'Enter your phone number',
     btn_next: 'Next →',
     btn_back: '← Back',
     btn_submit: 'Confirm Booking ✓',
@@ -343,10 +343,10 @@ const TRANSLATIONS = {
     booking_subtitle: '3步轻松预约。选择您喜欢的服务和日期。',
     step1_label: '选择日期',
     step2_label: '选择项目',
-    step3_label: '客户信息',
+    step3_label: '电话号码',
     panel1_title: '请选择日期和时间',
     panel2_title: '请选择服务项目',
-    panel3_title: '请填写您的信息',
+    panel3_title: '请输入电话号码',
     btn_next: '下一步 →',
     btn_back: '← 返回',
     btn_submit: '确认预约 ✓',
@@ -1073,12 +1073,12 @@ function updateBookingSummary() {
 function handleSubmit(e) {
   e.preventDefault();
 
-  const name = document.getElementById('customerName').value.trim();
   const phone = document.getElementById('customerPhone').value.trim();
-  const email = document.getElementById('customerEmail')?.value.trim() || '';
-  const note = document.getElementById('customerNote')?.value.trim() || '';
+  const name = phone; // 電話番号を顧客識別子として使用
+  const email = '';
+  const note = '';
 
-  if (!name || !phone) {
+  if (!phone) {
     alert(t('alert_required'));
     return;
   }
@@ -1166,18 +1166,13 @@ function handleSubmit(e) {
     note: note
   });
 
-  const honorific = t('modal_honorific');
-  const nameDisplay = honorific ? `${name} ${honorific}` : name;
-
   const modalText = document.getElementById('modalText');
   modalText.innerHTML = `
-    <strong>${nameDisplay}</strong><br><br>
     📋 ${menuName}<br>
     📅 ${dateStr} ${state.selectedTime}<br>
     💰 ${menuPrice}<br><br>
     ${t('modal_confirm_msg')}<br>
-    ${t('modal_phone_label')}: ${phone}
-    ${email ? '<br>📧 ' + email : ''}
+    📞 ${phone}
   `;
 
   document.getElementById('confirmModal').classList.add('active');
