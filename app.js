@@ -125,20 +125,23 @@ const TRANSLATIONS = {
     booking_subtitle: '3ステップで簡単予約。お好みのメニューと日時をお選びください。',
     step1_label: '日時選択',
     step2_label: 'メニュー選択',
-    step3_label: '電話番号',
+    step3_label: 'お客様情報',
     panel1_title: '日時をお選びください',
     panel2_title: 'メニューをお選びください',
-    panel3_title: '電話番号を入力してください',
+    panel3_title: 'お客様情報をご入力ください',
     btn_next: '次へ進む →',
     btn_back: '← 戻る',
     btn_submit: '予約を確定する ✓',
     time_select: '時間帯を選択',
     label_name: 'お名前 <span class="req">*</span>',
-    label_phone: '電話番号 <span class="req">*</span>',
+    label_phone: '電話番号',
     label_email: 'メールアドレス',
     label_note: 'ご要望・メッセージ',
+    contact_hint: '電話番号またはメールアドレスのどちらかを入力してください。',
+    contact_error: '電話番号またはメールアドレスを入力してください。',
+    alert_name_required: 'お名前を入力してください。',
     placeholder_name: '田中 花子',
-    placeholder_phone: '090-1234-5678',
+    placeholder_phone: '9123 4567',
     placeholder_note: 'ご要望がありましたらお書きください',
     summary_title: '予約内容',
     summary_menu: 'メニュー',
@@ -234,20 +237,23 @@ const TRANSLATIONS = {
     booking_subtitle: 'Book in 3 easy steps. Choose your preferred service and date.',
     step1_label: 'Date & Time',
     step2_label: 'Select Service',
-    step3_label: 'Phone',
+    step3_label: 'Your Info',
     panel1_title: 'Choose date & time',
     panel2_title: 'Select a service',
-    panel3_title: 'Enter your phone number',
+    panel3_title: 'Enter your details',
     btn_next: 'Next →',
     btn_back: '← Back',
     btn_submit: 'Confirm Booking ✓',
     time_select: 'Select a time',
     label_name: 'Name <span class="req">*</span>',
-    label_phone: 'Phone <span class="req">*</span>',
+    label_phone: 'Phone Number',
     label_email: 'Email',
     label_note: 'Requests / Message',
-    placeholder_name: 'Hanako Tanaka',
-    placeholder_phone: '090-1234-5678',
+    contact_hint: 'Please enter at least one: phone number or email.',
+    contact_error: 'Please enter a phone number or email address.',
+    alert_name_required: 'Please enter your name.',
+    placeholder_name: 'Your name',
+    placeholder_phone: '9123 4567',
     placeholder_note: 'Any requests or special notes',
     summary_title: 'Booking Summary',
     summary_menu: 'Service',
@@ -343,20 +349,23 @@ const TRANSLATIONS = {
     booking_subtitle: '3步轻松预约。选择您喜欢的服务和日期。',
     step1_label: '选择日期',
     step2_label: '选择项目',
-    step3_label: '电话号码',
+    step3_label: '客户信息',
     panel1_title: '请选择日期和时间',
     panel2_title: '请选择服务项目',
-    panel3_title: '请输入电话号码',
+    panel3_title: '请输入客户信息',
     btn_next: '下一步 →',
     btn_back: '← 返回',
     btn_submit: '确认预约 ✓',
     time_select: '选择时间段',
     label_name: '姓名 <span class="req">*</span>',
-    label_phone: '电话号码 <span class="req">*</span>',
+    label_phone: '电话号码',
     label_email: '电子邮件',
     label_note: '需求/备注',
-    placeholder_name: '田中花子',
-    placeholder_phone: '090-1234-5678',
+    contact_hint: '请至少输入电话号码或电子邮件之一。',
+    contact_error: '请输入电话号码或电子邮件地址。',
+    alert_name_required: '请输入姓名。',
+    placeholder_name: '您的姓名',
+    placeholder_phone: '9123 4567',
     placeholder_note: '如有特殊需求请在此填写',
     summary_title: '预约概要',
     summary_menu: '项目',
@@ -1073,15 +1082,26 @@ function updateBookingSummary() {
 function handleSubmit(e) {
   e.preventDefault();
 
-  const phone = document.getElementById('customerPhone').value.trim();
-  const name = phone; // 電話番号を顧客識別子として使用
-  const email = '';
+  const name = document.getElementById('customerName').value.trim();
+  const phoneRaw = document.getElementById('customerPhone').value.trim();
+  const countryCode = document.getElementById('countryCode')?.value || '+65';
+  const phone = phoneRaw ? countryCode + ' ' + phoneRaw : '';
+  const email = document.getElementById('customerEmail')?.value.trim() || '';
   const note = '';
 
-  if (!phone) {
-    alert(t('alert_required'));
+  // 名前は必須
+  if (!name) {
+    alert(t('alert_name_required'));
     return;
   }
+
+  // 電話番号かメールのどちらか一つは必須
+  const contactError = document.getElementById('contactError');
+  if (!phoneRaw && !email) {
+    if (contactError) contactError.style.display = 'block';
+    return;
+  }
+  if (contactError) contactError.style.display = 'none';
 
   let dateStr = '';
   let dateISO = '';
@@ -1168,11 +1188,13 @@ function handleSubmit(e) {
 
   const modalText = document.getElementById('modalText');
   modalText.innerHTML = `
+    <strong>${name}</strong><br><br>
     📋 ${menuName}<br>
     📅 ${dateStr} ${state.selectedTime}<br>
     💰 ${menuPrice}<br><br>
     ${t('modal_confirm_msg')}<br>
-    📞 ${phone}
+    ${phone ? '📞 ' + phone + '<br>' : ''}
+    ${email ? '📧 ' + email : ''}
   `;
 
   document.getElementById('confirmModal').classList.add('active');

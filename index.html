@@ -167,12 +167,41 @@
 
         <!-- Step 3: Customer Info -->
         <div class="booking-panel" id="bookingStep3">
-          <h3 class="panel-heading" data-i18n="panel3_title">Enter your phone number</h3>
+          <h3 class="panel-heading" data-i18n="panel3_title">Enter your details</h3>
           <form class="booking-form" id="bookingForm">
             <div class="form-group">
-              <label for="customerPhone" data-i18n="label_phone" data-i18n-html="true">Phone Number <span class="req">*</span></label>
-              <input type="tel" id="customerPhone" data-i18n-placeholder="placeholder_phone" placeholder="+65 9123 4567" required>
+              <label for="customerName" data-i18n="label_name" data-i18n-html="true">Name <span class="req">*</span></label>
+              <input type="text" id="customerName" data-i18n-placeholder="placeholder_name" placeholder="Your name" required>
             </div>
+            <p class="form-hint" data-i18n="contact_hint">Please enter at least one: phone number or email.</p>
+            <div class="form-group">
+              <label for="customerPhone" data-i18n="label_phone">Phone Number</label>
+              <div class="phone-input-wrap">
+                <select id="countryCode" class="country-code-select">
+                  <option value="+65">🇸🇬 +65</option>
+                  <option value="+81">🇯🇵 +81</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+86">🇨🇳 +86</option>
+                  <option value="+82">🇰🇷 +82</option>
+                  <option value="+61">🇦🇺 +61</option>
+                  <option value="+66">🇹🇭 +66</option>
+                  <option value="+60">🇲🇾 +60</option>
+                  <option value="+62">🇮🇩 +62</option>
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+63">🇵🇭 +63</option>
+                  <option value="+84">🇻🇳 +84</option>
+                  <option value="+49">🇩🇪 +49</option>
+                  <option value="+33">🇫🇷 +33</option>
+                </select>
+                <input type="tel" id="customerPhone" data-i18n-placeholder="placeholder_phone" placeholder="9123 4567">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="customerEmail" data-i18n="label_email">Email</label>
+              <input type="email" id="customerEmail" placeholder="example@email.com">
+            </div>
+            <p class="form-error" id="contactError" style="display:none;" data-i18n="contact_error">Please enter a phone number or email address.</p>
             <!-- Summary Card -->
             <div class="summary-card" id="bookingSummary"></div>
             <div class="panel-actions panel-actions-split">
