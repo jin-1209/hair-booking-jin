@@ -1888,22 +1888,16 @@ function initInstagramGallery() {
   const grid = document.getElementById('igGrid');
   if (!grid) return;
 
-  // Instagram Graph APIが設定されている場合はライブデータを取得
-  if (INSTAGRAM_CONFIG.accessToken && INSTAGRAM_CONFIG.userId) {
-    fetchInstagramPosts(grid);
-  } else {
-    renderInstagramMock(grid);
-  }
+  // Vercel API経由でInstagram投稿を取得（トークンはサーバー側で管理）
+  fetchInstagramPosts(grid);
 }
 
 function fetchInstagramPosts(grid) {
-  const url = `https://graph.instagram.com/${INSTAGRAM_CONFIG.userId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,like_count,timestamp&limit=8&access_token=${INSTAGRAM_CONFIG.accessToken}`;
-  
-  fetch(url)
+  fetch('/api/instagram?limit=8')
     .then(res => res.json())
-    .then(data => {
-      if (data.data && data.data.length > 0) {
-        renderInstagramLive(grid, data.data);
+    .then(result => {
+      if (result.data && result.data.length > 0) {
+        renderInstagramLive(grid, result.data);
       } else {
         renderInstagramMock(grid);
       }
@@ -1916,13 +1910,12 @@ function fetchInstagramPosts(grid) {
 
 function renderInstagramLive(grid, posts) {
   grid.innerHTML = posts.slice(0, 8).map(post => {
-    const imgUrl = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url;
+    const imgUrl = post.mediaType === 'VIDEO' ? post.thumbnailUrl : post.mediaUrl;
     const caption = (post.caption || '').substring(0, 50);
     return `
       <a href="${post.permalink}" target="_blank" class="ig-item">
         <img src="${imgUrl}" alt="${caption}" loading="lazy">
         <div class="ig-item-overlay">
-          <span class="ig-likes">❤️ ${post.like_count || ''}</span>
           <span class="ig-caption">${caption}</span>
         </div>
       </a>
