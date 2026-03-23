@@ -222,7 +222,7 @@ const TRANSLATIONS = {
     stylist_badge: 'About',
     stylist_title: 'About the Stylist',
     stylist_role: 'Beauty Stylist at TOKI+LIM',
-    stylist_bio: 'With 20 years of experience in Tokyo\'s most prestigious hair districts — Harajuku, Omotesando, and Aoyama — I\'ve dedicated my career to the art of hairstyling. After honing my skills at two renowned salons, I co-founded my own salon in Harajuku in 2015, and later opened a salon-bar concept in Aoyama in 2022. Following a period specializing in gray hair blending techniques, I relocated to TOKI+LIM in Singapore\'s iconic Raffles Hotel in April 2025.',
+    stylist_bio: 'I spent 20 years perfecting my craft in Tokyo's top hair districts — Harajuku, Omotesando, and Aoyama. After working at two prestigious salons, I opened my own salon in Harajuku with my brother in 2015, then launched a salon-bar in Aoyama in 2022. I later spent 3 years specializing in gray hair blending before moving to Singapore in April 2025, where I now work at TOKI+LIM inside the iconic Raffles Hotel.',
     tag_hair: 'Hair Styling',
     tag_color: 'Coloring',
     tag_treatment: 'Treatment',
@@ -334,7 +334,7 @@ const TRANSLATIONS = {
     stylist_badge: 'About',
     stylist_title: '关于造型师',
     stylist_role: 'Beauty Stylist at TOKI+LIM',
-    stylist_bio: '在东京原宿、表参道、青山等最具代表性的美发圣地磨练了20年的技术。在两家知名沙龙积累经验后，2015年与兄长在原宿共同创业，2022年在青山开设了酒吧风格沙龙。之后在白发挑染专业店深耕3年，于2025年4月来到新加坡莱佛士酒店TOKI+LIM，开启了新的活动据点。',
+    stylist_bio: '在20年间，我在东京最顶尖的美发圣地——原宿、表参道、青山磨练技术。在两家知名沙龙工作后，2015年与兄长在原宿开设了自己的沙龙，2022年又在青山开了一家酒吧风格沙龙。之后花了3年专攻白发挑染技术，2025年4月来到新加坡，现在莱佛士酒店内的TOKI+LIM为大家服务。',
     tag_hair: '发型设计',
     tag_color: '染色',
     tag_treatment: '护理',
@@ -680,32 +680,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 function applySiteData() {
   const data = getSiteData();
+  const isJa = state.lang === 'ja';
 
-  // 写真はプロジェクト内の stylist.jpg を直接使用
-  // ダッシュボードで新しい写真をアップロード → stylist.jpg としてダウンロード
-  // → プロジェクトフォルダに配置 → デプロイで反映
-
-  // Apply stylist name
+  // スタイリスト名（全言語共通）
   if (data.stylistName) {
     const nameEl = document.querySelector('.stylist-name');
     if (nameEl) nameEl.textContent = data.stylistName;
-    // Also update logo text
     const logoText = document.querySelector('.logo-text');
     if (logoText) logoText.textContent = data.stylistName;
   }
 
-  // Apply stylist bio
-  if (data.stylistBio) {
+  // スタイリスト紹介文（日本語の時のみsiteDataを適用、他言語は翻訳を使用）
+  if (isJa && data.stylistBio) {
     const bioEl = document.querySelector('.stylist-bio');
     if (bioEl) bioEl.textContent = data.stylistBio;
   }
 
-  // Apply salon info
+  // サロン名（全言語共通）
   if (data.salonName) {
     const roleEl = document.querySelector('.stylist-role');
     if (roleEl) roleEl.textContent = data.salonName;
   }
 
+  // 住所・営業時間等（言語非依存の情報）
   if (data.address) {
     const addrEls = document.querySelectorAll('[data-i18n="info_address_value"]');
     addrEls.forEach(el => el.innerHTML = data.address.replace(/\n/g, '<br>'));
@@ -716,13 +713,12 @@ function applySiteData() {
     hourEls.forEach(el => el.textContent = data.businessHours);
   }
 
-  if (data.closedDay) {
+  if (data.closedDay && isJa) {
     const closedEls = document.querySelectorAll('[data-i18n="info_closed"]');
     closedEls.forEach(el => el.textContent = data.closedDay);
   }
 
   if (data.phone) {
-    // Find the phone info item and update
     const phoneItems = document.querySelectorAll('.detail-item');
     phoneItems.forEach(item => {
       const h4 = item.querySelector('h4');
@@ -744,35 +740,37 @@ function applySiteData() {
     });
   }
 
-  // Apply hero text
-  if (data.heroBadge) {
-    const badgeEl = document.querySelector('[data-i18n="hero_badge"]');
-    if (badgeEl) badgeEl.textContent = data.heroBadge;
-  }
-  if (data.heroTitle1) {
-    const t1 = document.querySelector('[data-i18n="hero_title_1"]');
-    if (t1) t1.textContent = data.heroTitle1;
-  }
-  if (data.heroTitle2) {
-    const t2 = document.querySelector('[data-i18n="hero_title_2"]');
-    if (t2) t2.textContent = data.heroTitle2;
-  }
-  if (data.heroDesc) {
-    const descEl = document.querySelector('[data-i18n="hero_desc"]');
-    if (descEl) descEl.textContent = data.heroDesc;
-  }
-  if (data.heroCta) {
-    const ctaEl = document.querySelector('[data-i18n="hero_cta"]');
-    if (ctaEl) ctaEl.textContent = data.heroCta;
+  // Heroテキスト（日本語の時のみsiteDataを適用、他言語は翻訳を使用）
+  if (isJa) {
+    if (data.heroBadge) {
+      const badgeEl = document.querySelector('[data-i18n="hero_badge"]');
+      if (badgeEl) badgeEl.textContent = data.heroBadge;
+    }
+    if (data.heroTitle1) {
+      const t1 = document.querySelector('[data-i18n="hero_title_1"]');
+      if (t1) t1.textContent = data.heroTitle1;
+    }
+    if (data.heroTitle2) {
+      const t2 = document.querySelector('[data-i18n="hero_title_2"]');
+      if (t2) t2.textContent = data.heroTitle2;
+    }
+    if (data.heroDesc) {
+      const descEl = document.querySelector('[data-i18n="hero_desc"]');
+      if (descEl) descEl.textContent = data.heroDesc;
+    }
+    if (data.heroCta) {
+      const ctaEl = document.querySelector('[data-i18n="hero_cta"]');
+      if (ctaEl) ctaEl.textContent = data.heroCta;
+    }
   }
 
-  // Apply hero stats
+  // 経験年数（数値なので全言語共通）
   if (data.yearsExp) {
     const nums = document.querySelectorAll('.trust-num');
     if (nums[0]) nums[0].textContent = data.yearsExp + '+';
   }
 
-  // Apply Instagram link
+  // Instagramリンク（全言語共通）
   if (data.instagram) {
     const igLink = document.querySelector('.social-icon[aria-label="Instagram"]');
     if (igLink) igLink.href = data.instagram;
