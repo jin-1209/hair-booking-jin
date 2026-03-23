@@ -222,7 +222,7 @@ const TRANSLATIONS = {
     stylist_badge: 'About',
     stylist_title: 'About the Stylist',
     stylist_role: 'Beauty Stylist at TOKI+LIM',
-    stylist_bio: 'I spent 20 years perfecting my craft in Tokyo's top hair districts — Harajuku, Omotesando, and Aoyama. After working at two prestigious salons, I opened my own salon in Harajuku with my brother in 2015, then launched a salon-bar in Aoyama in 2022. I later spent 3 years specializing in gray hair blending before moving to Singapore in April 2025, where I now work at TOKI+LIM inside the iconic Raffles Hotel.',
+    stylist_bio: 'I spent 20 years perfecting my craft in Tokyo\'s top hair districts — Harajuku, Omotesando, and Aoyama. After working at two prestigious salons, I opened my own salon in Harajuku with my brother in 2015, then launched a salon-bar in Aoyama in 2022. I later spent 3 years specializing in gray hair blending before moving to Singapore in April 2025, where I now work at TOKI+LIM inside the iconic Raffles Hotel.',
     tag_hair: 'Hair Styling',
     tag_color: 'Coloring',
     tag_treatment: 'Treatment',
