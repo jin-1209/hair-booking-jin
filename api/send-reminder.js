@@ -1,4 +1,4 @@
-// Vercel Serverless Function: 前日リマインダーSMS送信
+// Vercel Serverless Function: 前日リマインダー SMS + WhatsApp 送信
 // Vercel Cronで毎日自動実行 (UTC 10:00 = SGT 18:00)
 
 const twilio = require('twilio');
@@ -7,7 +7,6 @@ module.exports = async (req, res) => {
   // Vercel Cronからの呼び出しを検証
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // 手動テスト用にGETも許可
     if (req.method !== 'GET' || !req.query.test) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -17,14 +16,19 @@ module.exports = async (req, res) => {
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
     TWILIO_PHONE_NUMBER,
-    GOOGLE_SHEETS_API_URL
+    TWILIO_WHATSAPP_NUMBER,
+    GOOGLE_SHEETS_API_URL,
+    REMINDER_CHANNEL
   } = process.env;
 
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
     return res.status(500).json({ error: 'Twilio credentials not configured' });
   }
 
   const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+  const whatsappFrom = TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886';
+  // 送信チャネル: 環境変数で設定（デフォルト: whatsapp）
+  const sendChannel = REMINDER_CHANNEL || 'whatsapp';
 
   try {
     // 明日の日付を計算 (SGT = UTC+8)
@@ -32,7 +36,7 @@ module.exports = async (req, res) => {
     const sgt = new Date(now.getTime() + (8 * 60 * 60 * 1000));
     const tomorrow = new Date(sgt);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
     // Google Sheetsから明日の予約を取得
     let bookings = [];
@@ -49,7 +53,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // localStorageの代わりに、フロントエンドから予約データをPOSTで受け取ることも可能
     if (req.method === 'POST' && req.body.bookings) {
       bookings = req.body.bookings;
     }
@@ -68,46 +71,83 @@ module.exports = async (req, res) => {
       const phone = booking.phone || booking.customerPhone;
       if (!phone) continue;
 
-      const reminderMessage = [
-        `【JIN Beauty - Reminder】`,
+      const cleanPhone = phone.replace(/\s/g, '');
+      const customerName = booking.client || booking.customerName;
+
+      // WhatsApp用メッセージ（太字対応）
+      const whatsappMessage = [
+        `⏰ *JIN Beauty - Appointment Reminder*`,
         ``,
-        `Hi ${booking.client || booking.customerName},`,
-        `This is a reminder for your appointment tomorrow.`,
+        `Hi ${customerName},`,
+        `This is a reminder for your appointment *tomorrow*.`,
         ``,
-        `📋 Service: ${booking.menu || booking.menuName}`,
-        `📅 Date: ${booking.date}`,
-        `⏰ Time: ${booking.time}`,
+        `📋 *Service:* ${booking.menu || booking.menuName}`,
+        `📅 *Date:* ${booking.date}`,
+        `⏰ *Time:* ${booking.time}`,
         ``,
-        `📍 TOKI+LIM`,
+        `📍 *TOKI+LIM*`,
         `420 North Bridge Rd, #03-06`,
         `Singapore 188727`,
         ``,
         `See you tomorrow! ✨`
       ].join('\n');
 
-      try {
-        const sms = await client.messages.create({
-          body: reminderMessage,
-          from: TWILIO_PHONE_NUMBER,
-          to: phone.replace(/\s/g, '')
-        });
-        results.push({ 
-          customer: booking.client || booking.customerName, 
-          sid: sms.sid, 
-          status: 'sent' 
-        });
-      } catch (err) {
-        results.push({ 
-          customer: booking.client || booking.customerName, 
-          error: err.message, 
-          status: 'failed' 
-        });
+      // SMS用メッセージ（書式なし）
+      const smsMessage = whatsappMessage.replace(/\*/g, '');
+
+      // WhatsApp送信
+      if (sendChannel === 'whatsapp' || sendChannel === 'both') {
+        try {
+          const waMsg = await client.messages.create({
+            body: whatsappMessage,
+            from: whatsappFrom,
+            to: `whatsapp:${cleanPhone}`
+          });
+          results.push({ 
+            customer: customerName, 
+            channel: 'whatsapp',
+            sid: waMsg.sid, 
+            status: 'sent' 
+          });
+        } catch (err) {
+          results.push({ 
+            customer: customerName, 
+            channel: 'whatsapp',
+            error: err.message, 
+            status: 'failed' 
+          });
+        }
+      }
+
+      // SMS送信
+      if ((sendChannel === 'sms' || sendChannel === 'both') && TWILIO_PHONE_NUMBER) {
+        try {
+          const smsMsg = await client.messages.create({
+            body: smsMessage,
+            from: TWILIO_PHONE_NUMBER,
+            to: cleanPhone
+          });
+          results.push({ 
+            customer: customerName, 
+            channel: 'sms',
+            sid: smsMsg.sid, 
+            status: 'sent' 
+          });
+        } catch (err) {
+          results.push({ 
+            customer: customerName, 
+            channel: 'sms',
+            error: err.message, 
+            status: 'failed' 
+          });
+        }
       }
     }
 
     return res.status(200).json({ 
       success: true, 
       date: tomorrowStr,
+      channel: sendChannel,
       reminders_sent: results.filter(r => r.status === 'sent').length,
       results 
     });

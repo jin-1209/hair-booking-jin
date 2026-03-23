@@ -2103,13 +2103,13 @@ function sendBookingNotification(bookingData) {
 }
 
 // ==========================================
-// SMS 通知（Twilio via Vercel API）
+// WhatsApp / SMS 通知（Twilio via Vercel API）
 // ==========================================
 
-// ① 予約確認SMS
+// ① 予約確認 WhatsApp通知
 function sendSMSNotification(data) {
   if (!TWILIO_CONFIG.enabled) {
-    console.log('SMS通知は無効です');
+    console.log('通知は無効です');
     return Promise.resolve(false);
   }
 
@@ -2118,6 +2118,7 @@ function sendSMSNotification(data) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: 'confirmation',
+      channel: 'whatsapp',
       to: data.customerPhone,
       customerName: data.customerName,
       menuName: data.menuName,
@@ -2130,25 +2131,25 @@ function sendSMSNotification(data) {
   })
   .then(res => res.json())
   .then(result => {
-    console.log('予約確認SMS送信完了:', result);
+    console.log('予約確認WhatsApp送信完了:', result);
     return true;
   })
   .catch(err => {
-    console.error('予約確認SMS送信エラー:', err);
+    console.error('予約確認WhatsApp送信エラー:', err);
     return false;
   });
 }
 
-// ③ キャンセル通知SMS
+// ③ キャンセル通知 WhatsApp
 function sendCancellationSMS(booking) {
   if (!TWILIO_CONFIG.enabled) {
-    console.log('SMS通知は無効です');
+    console.log('通知は無効です');
     return Promise.resolve(false);
   }
 
   const phone = booking.phone || booking.customerPhone;
   if (!phone) {
-    console.log('電話番号がないためSMS送信をスキップ');
+    console.log('電話番号がないため通知送信をスキップ');
     return Promise.resolve(false);
   }
 
@@ -2157,6 +2158,7 @@ function sendCancellationSMS(booking) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: 'cancellation',
+      channel: 'whatsapp',
       to: phone,
       customerName: booking.client || booking.customerName,
       menuName: booking.menu || booking.menuName,
@@ -2167,11 +2169,12 @@ function sendCancellationSMS(booking) {
   })
   .then(res => res.json())
   .then(result => {
-    console.log('キャンセル通知SMS送信完了:', result);
+    console.log('キャンセル通知WhatsApp送信完了:', result);
     return true;
   })
   .catch(err => {
-    console.error('キャンセル通知SMS送信エラー:', err);
+    console.error('キャンセル通知WhatsApp送信エラー:', err);
     return false;
   });
 }
+
