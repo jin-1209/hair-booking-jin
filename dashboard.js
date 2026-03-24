@@ -291,13 +291,13 @@ function renderBookingsTable(filter, query) {
     }
     return `
     <tr>
-      <td><span class="booking-id">${b.id}</span></td>
-      <td>${b.client}</td>
-      <td>${b.menu}</td>
-      <td>${b.date} ${b.time}</td>
-      <td>$${b.price}</td>
-      <td><span class="status-badge st-${b.status}">${statusLabels[b.status]}</span></td>
-      <td>${actions}</td>
+      <td data-label="ID"><span class="booking-id">${b.id}</span></td>
+      <td data-label="Client">${b.client}</td>
+      <td data-label="Service">${b.menu}</td>
+      <td data-label="Date/Time">${b.date} ${b.time}</td>
+      <td data-label="Price">$${b.price}</td>
+      <td data-label="Status"><span class="status-badge st-${b.status}">${statusLabels[b.status]}</span></td>
+      <td data-label="Action">${actions}</td>
     </tr>`;
   }).join('');
 }
@@ -325,6 +325,7 @@ function changeBookingStatus(bookingId, action) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'cancellation',
+          channel: 'whatsapp',
           to: b.phone,
           customerName: b.client,
           menuName: b.menu,
@@ -334,8 +335,8 @@ function changeBookingStatus(bookingId, action) {
         })
       })
       .then(r => r.json())
-      .then(result => console.log('キャンセルSMS送信:', result))
-      .catch(err => console.error('キャンセルSMS送信エラー:', err));
+      .then(result => console.log('Cancellation WhatsApp sent:', result))
+      .catch(err => console.error('Cancellation WhatsApp error:', err));
     }
   } else {
     return;
