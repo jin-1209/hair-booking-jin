@@ -1,6 +1,6 @@
-// Vercel Serverless Function: SMS + WhatsApp 送信 (Twilio)
-// 予約確認・キャンセル通知用
-// channel: 'sms', 'whatsapp', 'both' で送信チャネルを選択
+// Vercel Serverless Function: WhatsApp / SMS Notifications (Twilio)
+// Booking confirmation, cancellation, and thank you messages
+// Channel: 'whatsapp', 'sms', 'both' (default: whatsapp)
 
 const twilio = require('twilio');
 
@@ -31,89 +31,113 @@ module.exports = async (req, res) => {
   }
 
   const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-  // WhatsApp送信元番号（Twilio Sandbox: whatsapp:+14155238886、本番は自分の番号）
   const whatsappFrom = TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886';
 
   try {
     const { type, to, customerName, menuName, date, time, price, phone, email, channel } = req.body;
-
-    // 送信チャネル: 'whatsapp', 'sms', 'both'（デフォルト: whatsapp）
     const sendChannel = channel || 'whatsapp';
 
     let customerMessage = '';
     let stylistMessage = '';
 
     switch (type) {
-      // ① 予約確認
+
+      // ① Booking Confirmation
       case 'confirmation':
         customerMessage = [
-          `✅ *JIN Beauty - Booking Confirmed*`,
+          `✅ *Booking Confirmed — JIN at TOKI+LIM*`,
           ``,
           `Hi ${customerName},`,
-          `Your booking has been confirmed!`,
+          `Thank you for your booking! Here are the details:`,
           ``,
           `📋 *Service:* ${menuName}`,
           `📅 *Date:* ${date}`,
           `⏰ *Time:* ${time}`,
           `💰 *Price:* ${price}`,
           ``,
-          `📍 *TOKI+LIM*`,
+          `📍 *Location:*`,
+          `TOKI+LIM, Raffles Hotel Arcade`,
           `420 North Bridge Rd, #03-06`,
           `Singapore 188727`,
           ``,
-          `To cancel or change, please contact us.`,
-          `Thank you! ✨`
+          `If you need to reschedule or cancel, please reply to this message or contact us directly.`,
+          ``,
+          `We look forward to seeing you! ✨`
         ].join('\n');
 
         stylistMessage = [
-          `📩 *新規予約通知*`,
+          `📩 *New Booking*`,
           ``,
-          `*顧客:* ${customerName}`,
-          `*メニュー:* ${menuName}`,
-          `*日時:* ${date} ${time}`,
-          `*料金:* ${price}`,
-          phone ? `*電話:* ${phone}` : '',
+          `*Client:* ${customerName}`,
+          `*Service:* ${menuName}`,
+          `*Date & Time:* ${date} ${time}`,
+          `*Price:* ${price}`,
+          phone ? `*Phone:* ${phone}` : '',
           email ? `*Email:* ${email}` : ''
         ].filter(Boolean).join('\n');
         break;
 
-      // ③ キャンセル通知
-      case 'cancellation':
+      // ② Thank You (Post-appointment)
+      case 'thankyou':
         customerMessage = [
-          `❌ *JIN Beauty - Booking Cancelled*`,
+          `🙏 *Thank You — JIN at TOKI+LIM*`,
           ``,
           `Hi ${customerName},`,
-          `Your booking has been cancelled.`,
           ``,
-          `📋 ${menuName}`,
-          `📅 ${date} ${time}`,
+          `Thank you so much for visiting us today!`,
+          `I hope you love your new look. 💇`,
+          ``,
+          `If you'd like to book your next appointment, you can do so here:`,
+          `🔗 https://hair-booking-jin.vercel.app`,
+          ``,
+          `We'd also love it if you could share your experience! Feel free to tag us on Instagram:`,
+          `📸 @jinstaglam.hair`,
+          ``,
+          `See you again soon! ✨`,
+          `— JIN`
+        ].join('\n');
+
+        stylistMessage = '';
+        break;
+
+      // ③ Cancellation
+      case 'cancellation':
+        customerMessage = [
+          `❌ *Booking Cancelled — JIN at TOKI+LIM*`,
+          ``,
+          `Hi ${customerName},`,
+          `Your booking has been cancelled:`,
+          ``,
+          `📋 *Service:* ${menuName}`,
+          `📅 *Date:* ${date} ${time}`,
           ``,
           `We hope to see you again soon!`,
-          `To rebook: https://hair-booking-jin.vercel.app`
+          `You can rebook anytime here:`,
+          `🔗 https://hair-booking-jin.vercel.app`,
+          ``,
+          `Thank you! 🙏`
         ].join('\n');
 
         stylistMessage = [
-          `❌ *予約キャンセル*`,
+          `❌ *Booking Cancelled*`,
           ``,
-          `*顧客:* ${customerName}`,
-          `*メニュー:* ${menuName}`,
-          `*日時:* ${date} ${time}`,
-          phone ? `*電話:* ${phone}` : ''
+          `*Client:* ${customerName}`,
+          `*Service:* ${menuName}`,
+          `*Date & Time:* ${date} ${time}`,
+          phone ? `*Phone:* ${phone}` : ''
         ].filter(Boolean).join('\n');
         break;
 
       default:
-        return res.status(400).json({ error: 'Invalid type. Use: confirmation, cancellation' });
+        return res.status(400).json({ error: 'Invalid type. Use: confirmation, thankyou, cancellation' });
     }
 
     const results = [];
 
-    // 顧客に送信（電話番号がある場合）
+    // Send to customer
     if (to) {
       const cleanTo = to.replace(/\s/g, '');
 
-      // WhatsApp送信
       if (sendChannel === 'whatsapp' || sendChannel === 'both') {
         try {
           const waMsg = await client.messages.create({
@@ -127,11 +151,10 @@ module.exports = async (req, res) => {
         }
       }
 
-      // SMS送信
       if ((sendChannel === 'sms' || sendChannel === 'both') && TWILIO_PHONE_NUMBER) {
         try {
           const smsMsg = await client.messages.create({
-            body: customerMessage.replace(/\*/g, ''), // WhatsApp書式を除去
+            body: customerMessage.replace(/\*/g, ''),
             from: TWILIO_PHONE_NUMBER,
             to: cleanTo
           });
@@ -142,11 +165,10 @@ module.exports = async (req, res) => {
       }
     }
 
-    // スタイリストに送信
-    if (STYLIST_PHONE_NUMBER) {
+    // Send to stylist (skip for thank you messages)
+    if (STYLIST_PHONE_NUMBER && stylistMessage) {
       const cleanStylist = STYLIST_PHONE_NUMBER.replace(/\s/g, '');
 
-      // WhatsAppでスタイリストに送信
       if (sendChannel === 'whatsapp' || sendChannel === 'both') {
         try {
           const waMsg = await client.messages.create({
@@ -160,7 +182,6 @@ module.exports = async (req, res) => {
         }
       }
 
-      // SMSでスタイリストに送信
       if ((sendChannel === 'sms' || sendChannel === 'both') && TWILIO_PHONE_NUMBER) {
         try {
           const smsMsg = await client.messages.create({
@@ -175,10 +196,10 @@ module.exports = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ success: true, channel: sendChannel, results });
+    return res.status(200).json({ success: true, type, channel: sendChannel, results });
 
   } catch (err) {
-    console.error('Send Error:', err);
+    console.error('Notification Error:', err);
     return res.status(500).json({ error: err.message });
   }
 };

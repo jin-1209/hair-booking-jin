@@ -2103,13 +2103,13 @@ function sendBookingNotification(bookingData) {
 }
 
 // ==========================================
-// WhatsApp / SMS 通知（Twilio via Vercel API）
+// WhatsApp Notifications (Twilio via Vercel API)
 // ==========================================
 
-// ① 予約確認 WhatsApp通知
+// ① Booking Confirmation
 function sendSMSNotification(data) {
   if (!TWILIO_CONFIG.enabled) {
-    console.log('通知は無効です');
+    console.log('Notifications disabled');
     return Promise.resolve(false);
   }
 
@@ -2131,25 +2131,59 @@ function sendSMSNotification(data) {
   })
   .then(res => res.json())
   .then(result => {
-    console.log('予約確認WhatsApp送信完了:', result);
+    console.log('Booking confirmation sent:', result);
     return true;
   })
   .catch(err => {
-    console.error('予約確認WhatsApp送信エラー:', err);
+    console.error('Booking confirmation error:', err);
     return false;
   });
 }
 
-// ③ キャンセル通知 WhatsApp
-function sendCancellationSMS(booking) {
+// ② Thank You (Post-appointment)
+function sendThankYouMessage(booking) {
   if (!TWILIO_CONFIG.enabled) {
-    console.log('通知は無効です');
+    console.log('Notifications disabled');
     return Promise.resolve(false);
   }
 
   const phone = booking.phone || booking.customerPhone;
   if (!phone) {
-    console.log('電話番号がないため通知送信をスキップ');
+    console.log('No phone number, skipping thank you');
+    return Promise.resolve(false);
+  }
+
+  return fetch(TWILIO_CONFIG.smsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'thankyou',
+      channel: 'whatsapp',
+      to: phone,
+      customerName: booking.client || booking.customerName
+    })
+  })
+  .then(res => res.json())
+  .then(result => {
+    console.log('Thank you message sent:', result);
+    return true;
+  })
+  .catch(err => {
+    console.error('Thank you message error:', err);
+    return false;
+  });
+}
+
+// ③ Cancellation
+function sendCancellationSMS(booking) {
+  if (!TWILIO_CONFIG.enabled) {
+    console.log('Notifications disabled');
+    return Promise.resolve(false);
+  }
+
+  const phone = booking.phone || booking.customerPhone;
+  if (!phone) {
+    console.log('No phone number, skipping cancellation notice');
     return Promise.resolve(false);
   }
 
@@ -2169,12 +2203,13 @@ function sendCancellationSMS(booking) {
   })
   .then(res => res.json())
   .then(result => {
-    console.log('キャンセル通知WhatsApp送信完了:', result);
+    console.log('Cancellation notice sent:', result);
     return true;
   })
   .catch(err => {
-    console.error('キャンセル通知WhatsApp送信エラー:', err);
+    console.error('Cancellation notice error:', err);
     return false;
   });
 }
+
 

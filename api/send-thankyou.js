@@ -1,5 +1,6 @@
-// Vercel Serverless Function: Day-Before Reminder via WhatsApp/SMS
-// Runs daily via Vercel Cron (UTC 10:00 = SGT 18:00)
+// Vercel Serverless Function: Post-Appointment Thank You Message
+// Runs daily via Vercel Cron (UTC 12:00 = SGT 20:00)
+// Sends thank you WhatsApp messages to clients who had appointments today
 
 const twilio = require('twilio');
 
@@ -30,19 +31,17 @@ module.exports = async (req, res) => {
   const sendChannel = REMINDER_CHANNEL || 'whatsapp';
 
   try {
-    // Calculate tomorrow's date (SGT = UTC+8)
+    // Today's date (SGT = UTC+8)
     const now = new Date();
     const sgt = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-    const tomorrow = new Date(sgt);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const todayStr = sgt.toISOString().split('T')[0];
 
-    // Fetch tomorrow's bookings from Google Sheets
+    // Fetch today's bookings from Google Sheets
     let bookings = [];
 
     if (GOOGLE_SHEETS_API_URL) {
       try {
-        const response = await fetch(`${GOOGLE_SHEETS_API_URL}?action=getBookings&date=${tomorrowStr}`);
+        const response = await fetch(`${GOOGLE_SHEETS_API_URL}?action=getBookings&date=${todayStr}`);
         const data = await response.json();
         if (data.bookings) {
           bookings = data.bookings;
@@ -52,7 +51,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Also accept bookings via POST body
     if (req.method === 'POST' && req.body.bookings) {
       bookings = req.body.bookings;
     }
@@ -60,8 +58,8 @@ module.exports = async (req, res) => {
     if (bookings.length === 0) {
       return res.status(200).json({ 
         success: true, 
-        message: `No bookings found for ${tomorrowStr}`,
-        reminders_sent: 0 
+        message: `No bookings found for ${todayStr}`,
+        thankyous_sent: 0 
       });
     }
 
@@ -71,40 +69,38 @@ module.exports = async (req, res) => {
       const phone = booking.phone || booking.customerPhone;
       if (!phone) continue;
 
+      // Skip cancelled bookings
+      if (booking.status === 'cancelled') continue;
+
       const cleanPhone = phone.replace(/\s/g, '');
       const customerName = booking.client || booking.customerName;
-      const serviceName = booking.menu || booking.menuName;
 
-      // English reminder message
-      const whatsappMessage = [
-        `⏰ *Appointment Reminder — JIN at TOKI+LIM*`,
+      const thankYouMessage = [
+        `🙏 *Thank You — JIN at TOKI+LIM*`,
         ``,
         `Hi ${customerName},`,
         ``,
-        `This is a friendly reminder that you have an appointment *tomorrow*.`,
+        `Thank you so much for visiting us today!`,
+        `I hope you love your new look. 💇`,
         ``,
-        `📋 *Service:* ${serviceName}`,
-        `📅 *Date:* ${booking.date}`,
-        `⏰ *Time:* ${booking.time}`,
+        `If you'd like to book your next appointment:`,
+        `🔗 https://hair-booking-jin.vercel.app`,
         ``,
-        `📍 *Location:*`,
-        `TOKI+LIM, Raffles Hotel Arcade`,
-        `420 North Bridge Rd, #03-06`,
-        `Singapore 188727`,
+        `We'd love it if you could share your experience!`,
+        `Feel free to tag us on Instagram:`,
+        `📸 @jinstaglam.hair`,
         ``,
-        `If you need to reschedule or cancel, please reply to this message.`,
-        ``,
-        `See you tomorrow! ✨`,
+        `See you again soon! ✨`,
         `— JIN`
       ].join('\n');
 
-      const smsMessage = whatsappMessage.replace(/\*/g, '');
+      const smsMessage = thankYouMessage.replace(/\*/g, '');
 
       // WhatsApp
       if (sendChannel === 'whatsapp' || sendChannel === 'both') {
         try {
           const waMsg = await client.messages.create({
-            body: whatsappMessage,
+            body: thankYouMessage,
             from: whatsappFrom,
             to: `whatsapp:${cleanPhone}`
           });
@@ -151,14 +147,14 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ 
       success: true, 
-      date: tomorrowStr,
+      date: todayStr,
       channel: sendChannel,
-      reminders_sent: results.filter(r => r.status === 'sent').length,
+      thankyous_sent: results.filter(r => r.status === 'sent').length,
       results 
     });
 
   } catch (err) {
-    console.error('Reminder Error:', err);
+    console.error('Thank You Message Error:', err);
     return res.status(500).json({ error: err.message });
   }
 };
