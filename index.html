@@ -277,6 +277,48 @@
       <div class="reviews-grid" id="reviewsGrid">
         <!-- Rendered by JS -->
       </div>
+
+      <!-- Review Submit Form -->
+      <div class="review-form-wrapper animate-in" id="reviewFormWrapper">
+        <h3 class="review-form-title" data-i18n="review_form_title">Share Your Experience</h3>
+        <form id="reviewSubmitForm" class="review-form">
+          <div class="review-form-row">
+            <div class="review-form-group">
+              <label data-i18n="review_name">Your Name</label>
+              <input type="text" id="reviewName" placeholder="e.g. A.K" required maxlength="30">
+            </div>
+            <div class="review-form-group">
+              <label data-i18n="review_menu">Service</label>
+              <select id="reviewMenu">
+                <option value="" data-i18n="review_select_service">Select service</option>
+                <option value="Haircut">Haircut</option>
+                <option value="Cut + Color">Cut + Color</option>
+                <option value="Color">Color</option>
+                <option value="Perm">Perm</option>
+                <option value="Treatment">Treatment</option>
+                <option value="Head Spa">Head Spa</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="review-form-group">
+            <label data-i18n="review_rating">Rating</label>
+            <div class="review-star-input" id="reviewStarInput">
+              <span class="star-btn" data-rating="1">☆</span>
+              <span class="star-btn" data-rating="2">☆</span>
+              <span class="star-btn" data-rating="3">☆</span>
+              <span class="star-btn" data-rating="4">☆</span>
+              <span class="star-btn" data-rating="5">☆</span>
+            </div>
+          </div>
+          <div class="review-form-group">
+            <label data-i18n="review_comment">Your Review</label>
+            <textarea id="reviewText" rows="3" placeholder="Tell us about your experience..." required maxlength="500"></textarea>
+          </div>
+          <button type="submit" class="review-submit-btn" id="reviewSubmitBtn" data-i18n="review_submit">Submit Review</button>
+          <p class="review-form-note" id="reviewFormNote"></p>
+        </form>
+      </div>
     </div>
   </section>
 

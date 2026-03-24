@@ -1570,14 +1570,14 @@ function updateNextSlot() {
 }
 
 // ==========================================
-// Reviews
+// Reviews — Server API backed
 // ==========================================
 function getReviews() {
   const stored = localStorage.getItem('salonReviews');
   if (stored) {
     try { return JSON.parse(stored); } catch(e) {}
   }
-  return DEFAULT_REVIEWS;
+  return [];
 }
 
 function saveReviews(reviews) {
@@ -1586,6 +1586,23 @@ function saveReviews(reviews) {
 
 function initReviews() {
   renderReviews();
+  fetchReviewsFromServer();
+  initReviewForm();
+}
+
+// Fetch approved reviews from server
+function fetchReviewsFromServer() {
+  fetch('/api/reviews')
+    .then(res => res.json())
+    .then(result => {
+      if (result.success && result.reviews && result.reviews.length > 0) {
+        saveReviews(result.reviews);
+        renderReviews();
+      }
+    })
+    .catch(err => {
+      console.log('Reviews API not available, using local data');
+    });
 }
 
 function renderReviews() {
@@ -1594,7 +1611,14 @@ function renderReviews() {
 
   const reviews = getReviews();
   if (!reviews.length) {
-    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);">まだ口コミはありません。</p>';
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0;">No reviews yet. Be the first to share!</p>';
+    // Hide summary
+    const avgNum = document.getElementById('reviewsAvgNum');
+    const avgStars = document.getElementById('reviewsAvgStars');
+    const avgCount = document.getElementById('reviewsAvgCount');
+    if (avgNum) avgNum.style.display = 'none';
+    if (avgStars) avgStars.style.display = 'none';
+    if (avgCount) avgCount.style.display = 'none';
     return;
   }
 
@@ -1604,9 +1628,15 @@ function renderReviews() {
   const avgStars = document.getElementById('reviewsAvgStars');
   const avgCount = document.getElementById('reviewsAvgCount');
   
-  if (avgNum) avgNum.textContent = avg.toFixed(1);
-  if (avgStars) avgStars.textContent = renderStarText(avg);
-  if (avgCount) avgCount.textContent = `${reviews.length}件の口コミ`;
+  if (avgNum) { avgNum.textContent = avg.toFixed(1); avgNum.style.display = ''; }
+  if (avgStars) { avgStars.textContent = renderStarText(avg); avgStars.style.display = ''; }
+  if (avgCount) {
+    const countText = state.lang === 'ja' ? `${reviews.length}件の口コミ` :
+                      state.lang === 'zh' ? `${reviews.length}条评价` :
+                      `${reviews.length} reviews`;
+    avgCount.textContent = countText;
+    avgCount.style.display = '';
+  }
 
   grid.innerHTML = reviews.map((review, i) => `
     <div class="review-card" style="animation: reviewFadeIn 0.5s ease-out ${i * 0.1}s both;">
@@ -1629,6 +1659,110 @@ function renderStarText(rating) {
   const half = rating % 1 >= 0.5 ? 1 : 0;
   const empty = 5 - full - half;
   return '★'.repeat(full) + (half ? '★' : '') + '☆'.repeat(empty);
+}
+
+// Review submission form
+function initReviewForm() {
+  const form = document.getElementById('reviewSubmitForm');
+  if (!form) return;
+
+  let selectedRating = 0;
+  const starInput = document.getElementById('reviewStarInput');
+  const stars = starInput ? starInput.querySelectorAll('.star-btn') : [];
+
+  // Star selection
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.rating);
+      stars.forEach(s => {
+        const r = parseInt(s.dataset.rating);
+        s.textContent = r <= selectedRating ? '★' : '☆';
+        s.classList.toggle('active', r <= selectedRating);
+      });
+    });
+
+    star.addEventListener('mouseenter', () => {
+      const hoverRating = parseInt(star.dataset.rating);
+      stars.forEach(s => {
+        const r = parseInt(s.dataset.rating);
+        s.textContent = r <= hoverRating ? '★' : '☆';
+      });
+    });
+
+    star.addEventListener('mouseleave', () => {
+      stars.forEach(s => {
+        const r = parseInt(s.dataset.rating);
+        s.textContent = r <= selectedRating ? '★' : '☆';
+      });
+    });
+  });
+
+  // Form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const note = document.getElementById('reviewFormNote');
+    const submitBtn = document.getElementById('reviewSubmitBtn');
+
+    if (selectedRating === 0) {
+      if (note) {
+        note.textContent = state.lang === 'ja' ? '星を選択してください' :
+                           state.lang === 'zh' ? '请选择星级' :
+                           'Please select a rating';
+        note.className = 'review-form-note error';
+      }
+      return;
+    }
+
+    const name = document.getElementById('reviewName').value.trim();
+    const text = document.getElementById('reviewText').value.trim();
+    const menu = document.getElementById('reviewMenu').value;
+
+    if (!name || !text) return;
+
+    // Disable button
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '...';
+    }
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, rating: selectedRating, text, menu })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        if (note) {
+          note.textContent = state.lang === 'ja' ? 'ありがとうございます！承認後に掲載されます。' :
+                             state.lang === 'zh' ? '谢谢！审核通过后将会发布。' :
+                             'Thank you! Your review will be published after approval.';
+          note.className = 'review-form-note success';
+        }
+        form.reset();
+        selectedRating = 0;
+        stars.forEach(s => { s.textContent = '☆'; s.classList.remove('active'); });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err) {
+      if (note) {
+        note.textContent = state.lang === 'ja' ? '送信に失敗しました。もう一度お試しください。' :
+                           state.lang === 'zh' ? '提交失败，请重试。' :
+                           'Submission failed. Please try again.';
+        note.className = 'review-form-note error';
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        const btnText = state.lang === 'ja' ? '口コミを投稿' :
+                        state.lang === 'zh' ? '提交评价' :
+                        'Submit Review';
+        submitBtn.textContent = btnText;
+      }
+    }
+  });
 }
 
 // ==========================================

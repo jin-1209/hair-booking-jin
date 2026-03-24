@@ -1933,6 +1933,145 @@ input, textarea { font-family: inherit; font-size: inherit; }
   }
 }
 
+/* === Review Submit Form === */
+.review-form-wrapper {
+  margin-top: 48px;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.review-form-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 500px) {
+  .review-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.review-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-form-group label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.review-form-group input,
+.review-form-group textarea,
+.review-form-group select {
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.review-form-group input:focus,
+.review-form-group textarea:focus,
+.review-form-group select:focus {
+  border-color: var(--accent);
+}
+
+.review-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Star rating input */
+.review-star-input {
+  display: flex;
+  gap: 8px;
+}
+
+.star-btn {
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #d4d4d4;
+  transition: color 0.15s, transform 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-btn.active {
+  color: #f59e0b;
+}
+
+/* Submit button */
+.review-submit-btn {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark, #7a5c3e));
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  width: 100%;
+}
+
+.review-submit-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.review-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Note messages */
+.review-form-note {
+  text-align: center;
+  font-size: 0.85rem;
+  min-height: 1.2em;
+  margin-top: 4px;
+}
+
+.review-form-note.success {
+  color: #10b981;
+}
+
+.review-form-note.error {
+  color: #ef4444;
+}
+
 /* === Promo Code Input === */
 .promo-input-wrap {
   position: relative;

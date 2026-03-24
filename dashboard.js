@@ -159,6 +159,7 @@ function initDashboard() {
   initMessages();
   initCoupons();
   initAnalyticsExtra();
+  initReviewsManage();
 }
 
 // ==========================================
@@ -1475,3 +1476,104 @@ function showToast(message) {
 // Resize handler
 let resizeTimer;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => initCharts(), 200); });
+
+// ==========================================
+// Reviews Management
+// ==========================================
+function initReviewsManage() {
+  loadDashboardReviews();
+}
+
+async function loadDashboardReviews() {
+  const pendingList = document.getElementById('pendingReviewsList');
+  const approvedList = document.getElementById('approvedReviewsList');
+  if (!pendingList || !approvedList) return;
+
+  try {
+    const res = await fetch('/api/reviews?all=true', {
+      headers: { 'Authorization': 'Bearer jin2025' }
+    });
+    const result = await res.json();
+    
+    if (!result.success) {
+      pendingList.innerHTML = '<p class="text-muted" style="padding:12px;">APIエラー</p>';
+      approvedList.innerHTML = '<p class="text-muted" style="padding:12px;">APIエラー</p>';
+      return;
+    }
+
+    const reviews = result.reviews || [];
+    const pending = reviews.filter(r => r.status === 'pending');
+    const approved = reviews.filter(r => r.status === 'approved');
+
+    if (pending.length === 0) {
+      pendingList.innerHTML = '<p class="text-muted" style="padding:16px;">未承認のクチコミはありません</p>';
+    } else {
+      pendingList.innerHTML = pending.map(r => renderDashboardReviewCard(r, true)).join('');
+    }
+
+    if (approved.length === 0) {
+      approvedList.innerHTML = '<p class="text-muted" style="padding:16px;">承認済みのクチコミはありません</p>';
+    } else {
+      approvedList.innerHTML = approved.map(r => renderDashboardReviewCard(r, false)).join('');
+    }
+  } catch (err) {
+    console.error('Reviews load error:', err);
+    pendingList.innerHTML = '<p class="text-muted" style="padding:12px;">読み込みエラー</p>';
+    approvedList.innerHTML = '';
+  }
+}
+
+function renderDashboardReviewCard(review, isPending) {
+  const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+  const actions = isPending ?
+    `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="action-btn" onclick="reviewAction('${review.id}', 'approve')">承認</button>
+      <button class="action-btn cancel-btn" onclick="reviewAction('${review.id}', 'reject')">却下</button>
+    </div>` :
+    `<div style="display:flex;gap:8px;">
+      <button class="action-btn cancel-btn" onclick="reviewAction('${review.id}', 'delete')">削除</button>
+    </div>`;
+
+  return `
+    <div style="padding:16px;border-bottom:1px solid var(--color-border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px;">
+        <div>
+          <span style="font-weight:600;">${review.name}</span>
+          <span style="color:var(--color-text-muted);font-size:0.8rem;margin-left:8px;">${review.date}</span>
+          ${review.menu ? `<span style="color:var(--color-accent);font-size:0.8rem;margin-left:8px;">${review.menu}</span>` : ''}
+        </div>
+        <span style="color:#f59e0b;letter-spacing:2px;">${stars}</span>
+      </div>
+      <p style="font-size:0.9rem;color:var(--color-text-secondary);margin-bottom:12px;line-height:1.6;">${review.text}</p>
+      ${actions}
+    </div>
+  `;
+}
+
+async function reviewAction(id, action) {
+  if (action === 'delete' && !confirm('このクチコミを削除しますか？')) return;
+  
+  try {
+    const res = await fetch('/api/reviews', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer jin2025'
+      },
+      body: JSON.stringify({ id, action })
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      const msg = action === 'approve' ? '承認しました' :
+                  action === 'reject' ? '却下しました' : '削除しました';
+      showToast(msg);
+      loadDashboardReviews();
+    } else {
+      showToast('エラー: ' + result.error);
+    }
+  } catch (err) {
+    showToast('通信エラーが発生しました');
+  }
+}
+
