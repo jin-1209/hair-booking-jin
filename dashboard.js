@@ -1113,15 +1113,44 @@ function getSiteData() {
 }
 function saveSiteData(data) {
   try {
-    // 写真データはlocalStorageに保存しない（IndexedDBに別途保存）
+    // 写真データは除外
     const dataForStorage = { ...data };
     delete dataForStorage.profilePhoto;
+    
+    // localStorageに保存（即時反映用キャッシュ）
     saveData('salonSiteData', dataForStorage);
+    
+    // サーバーにも保存（全デバイス共有）
+    syncSiteDataToServer(dataForStorage);
+    
     return true;
   } catch (e) {
     console.error('saveSiteData error:', e);
     return false;
   }
+}
+
+// サーバーへ設定データを同期
+function syncSiteDataToServer(data) {
+  fetch('/api/site-data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer jin2025'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.success) {
+      console.log('Site data synced to server');
+    } else {
+      console.warn('Server sync failed:', result.error);
+    }
+  })
+  .catch(err => {
+    console.warn('Server sync error (will retry on next save):', err);
+  });
 }
 
 function initSiteManage() { initHeroTextForm(); initSiteInfoForm(); initMenuManagement(); initPhotoManagement(); }

@@ -621,14 +621,12 @@ const DEFAULT_SITE_DATA = {
   heroCta: '今すぐ予約'
 };
 
-// Load saved site data from localStorage (dashboard edits)
-// デフォルト値と保存済みデータをマージして返す
+// Load saved site data: Server API → localStorage cache → defaults
 function getSiteData() {
   try {
     const saved = localStorage.getItem('salonSiteData');
     if (saved) {
       const parsedData = JSON.parse(saved);
-      // デフォルト値をベースに、保存済みデータ（null以外）で上書き
       const merged = { ...DEFAULT_SITE_DATA };
       Object.keys(parsedData).forEach(key => {
         if (parsedData[key] !== null && parsedData[key] !== undefined) {
@@ -639,6 +637,23 @@ function getSiteData() {
     }
   } catch(e) { /* ignore */ }
   return { ...DEFAULT_SITE_DATA };
+}
+
+// Fetch site data from server and update localStorage cache
+function fetchSiteDataFromServer() {
+  fetch('/api/site-data')
+    .then(res => res.json())
+    .then(result => {
+      if (result.success && result.data) {
+        // Save to localStorage as cache
+        localStorage.setItem('salonSiteData', JSON.stringify(result.data));
+        // Re-apply to DOM
+        applySiteData();
+      }
+    })
+    .catch(err => {
+      console.log('Server site data not available, using local cache');
+    });
 }
 
 // ==========================================
@@ -658,6 +673,7 @@ function menuText(item, field) {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   applySiteData();
+  fetchSiteDataFromServer(); // サーバーから最新データを取得して反映
   initHeader();
   initLanguageSwitcher();
   initScrollAnimations();
