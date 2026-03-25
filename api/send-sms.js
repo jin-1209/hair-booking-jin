@@ -31,7 +31,19 @@ module.exports = async (req, res) => {
   }
 
   const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-  const whatsappFrom = TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886';
+  
+  // Ensure whatsapp: prefix on the from number
+  let whatsappFrom = TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886';
+  if (!whatsappFrom.startsWith('whatsapp:')) {
+    whatsappFrom = `whatsapp:${whatsappFrom}`;
+  }
+
+  console.log('[send-sms] Config:', {
+    sid: TWILIO_ACCOUNT_SID ? TWILIO_ACCOUNT_SID.substring(0, 6) + '...' : 'MISSING',
+    token: TWILIO_AUTH_TOKEN ? '***set***' : 'MISSING',
+    whatsappFrom,
+    stylistPhone: STYLIST_PHONE_NUMBER || 'NOT SET'
+  });
 
   try {
     const { type, to, customerName, menuName, date, time, price, phone, email, channel } = req.body;
@@ -136,18 +148,24 @@ module.exports = async (req, res) => {
 
     // Send to customer
     if (to) {
-      const cleanTo = to.replace(/\s/g, '');
+      let cleanTo = to.replace(/\s/g, '');
+      // Ensure whatsapp: prefix for customer
+      const waTo = cleanTo.startsWith('whatsapp:') ? cleanTo : `whatsapp:${cleanTo}`;
+
+      console.log('[send-sms] Sending to customer:', { channel: sendChannel, to: waTo, type });
 
       if (sendChannel === 'whatsapp' || sendChannel === 'both') {
         try {
           const waMsg = await client.messages.create({
             body: customerMessage,
             from: whatsappFrom,
-            to: `whatsapp:${cleanTo}`
+            to: waTo
           });
-          results.push({ target: 'customer', channel: 'whatsapp', sid: waMsg.sid, status: 'sent' });
+          console.log('[send-sms] Customer WhatsApp sent:', waMsg.sid, waMsg.status);
+          results.push({ target: 'customer', channel: 'whatsapp', sid: waMsg.sid, status: waMsg.status || 'sent' });
         } catch (err) {
-          results.push({ target: 'customer', channel: 'whatsapp', error: err.message, status: 'failed' });
+          console.error('[send-sms] Customer WhatsApp FAILED:', err.code, err.message);
+          results.push({ target: 'customer', channel: 'whatsapp', error: err.message, code: err.code, status: 'failed' });
         }
       }
 
@@ -158,27 +176,34 @@ module.exports = async (req, res) => {
             from: TWILIO_PHONE_NUMBER,
             to: cleanTo
           });
-          results.push({ target: 'customer', channel: 'sms', sid: smsMsg.sid, status: 'sent' });
+          results.push({ target: 'customer', channel: 'sms', sid: smsMsg.sid, status: smsMsg.status || 'sent' });
         } catch (err) {
-          results.push({ target: 'customer', channel: 'sms', error: err.message, status: 'failed' });
+          console.error('[send-sms] Customer SMS FAILED:', err.code, err.message);
+          results.push({ target: 'customer', channel: 'sms', error: err.message, code: err.code, status: 'failed' });
         }
       }
     }
 
     // Send to stylist (skip for thank you messages)
     if (STYLIST_PHONE_NUMBER && stylistMessage) {
-      const cleanStylist = STYLIST_PHONE_NUMBER.replace(/\s/g, '');
+      let cleanStylist = STYLIST_PHONE_NUMBER.replace(/\s/g, '');
+      // Ensure whatsapp: prefix for stylist
+      const waStylist = cleanStylist.startsWith('whatsapp:') ? cleanStylist : `whatsapp:${cleanStylist}`;
+
+      console.log('[send-sms] Sending to stylist:', { channel: sendChannel, to: waStylist });
 
       if (sendChannel === 'whatsapp' || sendChannel === 'both') {
         try {
           const waMsg = await client.messages.create({
             body: stylistMessage,
             from: whatsappFrom,
-            to: `whatsapp:${cleanStylist}`
+            to: waStylist
           });
-          results.push({ target: 'stylist', channel: 'whatsapp', sid: waMsg.sid, status: 'sent' });
+          console.log('[send-sms] Stylist WhatsApp sent:', waMsg.sid, waMsg.status);
+          results.push({ target: 'stylist', channel: 'whatsapp', sid: waMsg.sid, status: waMsg.status || 'sent' });
         } catch (err) {
-          results.push({ target: 'stylist', channel: 'whatsapp', error: err.message, status: 'failed' });
+          console.error('[send-sms] Stylist WhatsApp FAILED:', err.code, err.message);
+          results.push({ target: 'stylist', channel: 'whatsapp', error: err.message, code: err.code, status: 'failed' });
         }
       }
 
@@ -189,13 +214,15 @@ module.exports = async (req, res) => {
             from: TWILIO_PHONE_NUMBER,
             to: cleanStylist
           });
-          results.push({ target: 'stylist', channel: 'sms', sid: smsMsg.sid, status: 'sent' });
+          results.push({ target: 'stylist', channel: 'sms', sid: smsMsg.sid, status: smsMsg.status || 'sent' });
         } catch (err) {
-          results.push({ target: 'stylist', channel: 'sms', error: err.message, status: 'failed' });
+          console.error('[send-sms] Stylist SMS FAILED:', err.code, err.message);
+          results.push({ target: 'stylist', channel: 'sms', error: err.message, code: err.code, status: 'failed' });
         }
       }
     }
 
+    console.log('[send-sms] Results:', JSON.stringify(results));
     return res.status(200).json({ success: true, type, channel: sendChannel, results });
 
   } catch (err) {

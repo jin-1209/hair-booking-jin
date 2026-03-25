@@ -1159,20 +1159,48 @@ function handleSubmit(e) {
   const menuPriceNum = state.selectedMenu.priceNum || 0;
 
   // Save booking to shared salonBookings (for dashboard integration)
+  const menuDuration = state.selectedMenu ? (state.selectedMenu.timeNum || 60) : 60;
+  const newBooking = {
+    id: 'B' + Date.now(),
+    client: name,
+    phone: phone,
+    email: email,
+    menu: menuName,
+    date: dateISO,
+    time: state.selectedTime || '',
+    duration: menuDuration,
+    price: menuPriceNum,
+    note: note,
+    status: 'confirmed'
+  };
+
+  // サーバーに予約を保存（ダブルブッキング防止）
+  fetch('/api/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newBooking)
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (!result.success) {
+      // ダブルブッキングエラー
+      const msg = state.lang === 'ja' ? 'この時間帯は既に予約が入っています。別の時間をお選びください。' :
+                  state.lang === 'zh' ? '该时段已被预约，请选择其他时间。' :
+                  'This time slot is already booked. Please select a different time.';
+      alert(msg);
+      // 時間帯を再読み込みして最新の空き状況を表示
+      renderTimeSlots();
+      return;
+    }
+    console.log('Booking saved to server:', result);
+  })
+  .catch(err => {
+    console.log('Server booking save error (continuing locally):', err);
+  });
+
+  // ローカルにもバックアップ保存
   try {
     const bookings = JSON.parse(localStorage.getItem('salonBookings') || '[]');
-    const newBooking = {
-      id: 'B' + String(bookings.length + 1).padStart(3, '0'),
-      client: name,
-      phone: phone,
-      email: email,
-      menu: menuName,
-      date: dateISO,
-      time: state.selectedTime || '',
-      price: menuPriceNum,
-      note: note,
-      status: 'pending'
-    };
     bookings.push(newBooking);
     localStorage.setItem('salonBookings', JSON.stringify(bookings));
   } catch(e) {}
@@ -1429,7 +1457,7 @@ function renderTimeSlots() {
   const container = document.getElementById('timeSlotsContainer');
   const slotsGrid = document.getElementById('timeSlots');
   container.style.display = 'block';
-  slotsGrid.innerHTML = '';
+  slotsGrid.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-muted);">Loading...</p>';
 
   // Get business hours for the selected date
   const date = state.selectedDate;
@@ -1475,25 +1503,76 @@ function renderTimeSlots() {
     currentMinutes += 30;
   }
 
-  const seed = date.getDate();
+  // サーバーから予約データを取得してスロットを表示
+  fetchBookingsForDate(dateStr).then(existingBookings => {
+    slotsGrid.innerHTML = '';
+    
+    // 選択中メニューの所要時間を取得（分）
+    const selectedDuration = state.selectedMenu ? (state.selectedMenu.timeNum || 60) : 60;
 
-  timeSlots.forEach((time, index) => {
-    const slot = document.createElement('div');
-    slot.className = 'time-slot';
-    slot.textContent = time;
+    // 今日の場合、現在時刻より前のスロットは無効
+    const now = new Date();
+    const isToday = date.getFullYear() === now.getFullYear() && 
+                    date.getMonth() === now.getMonth() && 
+                    date.getDate() === now.getDate();
+    const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
 
-    const isUnavailable = (seed + index) % 5 === 0;
-    if (isUnavailable) {
-      slot.classList.add('unavailable');
-    } else {
-      if (state.selectedTime === time) {
-        slot.classList.add('selected');
+    timeSlots.forEach(time => {
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.textContent = time;
+
+      const [th, tm] = time.split(':').map(Number);
+      const slotMinutes = th * 60 + tm;
+
+      // 今日の場合、過去の時間は無効
+      if (isToday && slotMinutes <= currentTimeMinutes) {
+        slot.classList.add('unavailable');
+        slot.title = 'Past time';
+        slotsGrid.appendChild(slot);
+        return;
       }
-      slot.addEventListener('click', (e) => selectTime(time, e));
-    }
 
-    slotsGrid.appendChild(slot);
+      // 既存予約との重複チェック
+      const hasConflict = existingBookings.some(booking => {
+        const [bh, bm] = booking.time.split(':').map(Number);
+        const bookingStart = bh * 60 + bm;
+        const bookingEnd = bookingStart + (booking.duration || 60);
+        const newEnd = slotMinutes + selectedDuration;
+        // 重なり判定
+        return slotMinutes < bookingEnd && newEnd > bookingStart;
+      });
+
+      if (hasConflict) {
+        slot.classList.add('unavailable');
+        slot.innerHTML = `${time} <span style="font-size:0.7em;opacity:0.6;">✕</span>`;
+        slot.title = 'Already booked';
+      } else {
+        if (state.selectedTime === time) {
+          slot.classList.add('selected');
+        }
+        slot.addEventListener('click', (e) => selectTime(time, e));
+      }
+
+      slotsGrid.appendChild(slot);
+    });
   });
+}
+
+// サーバーから特定日の予約データを取得
+function fetchBookingsForDate(dateStr) {
+  return fetch(`/api/bookings?date=${dateStr}`)
+    .then(res => res.json())
+    .then(result => {
+      if (result.success && result.bookings) {
+        return result.bookings;
+      }
+      return [];
+    })
+    .catch(err => {
+      console.log('Bookings API not available:', err);
+      return [];
+    });
 }
 
 function selectTime(time, e) {
