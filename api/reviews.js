@@ -25,12 +25,12 @@ async function saveReviews(reviews) {
   const payload = JSON.stringify(reviews);
   const options = { contentType: 'application/json', addRandomSuffix: false };
   try {
-    return await put(BLOB_KEY, payload, { ...options, access: 'public' });
+    return await put(BLOB_KEY, payload, { ...options, access: 'private' });
   } catch (e1) {
     try {
-      return await put(BLOB_KEY, payload, options);
+      return await put(BLOB_KEY, payload, { ...options, access: 'public' });
     } catch (e2) {
-      return await put(BLOB_KEY, payload, { ...options, access: 'private' });
+      return await put(BLOB_KEY, payload, options);
     }
   }
 }

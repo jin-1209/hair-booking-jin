@@ -4,28 +4,27 @@
 // POST: 新しい予約を登録
 // PUT: 予約ステータス更新（確認/キャンセル）
 
-const { put, list } = require('@vercel/blob');
+const { put, list, get: getBlob } = require('@vercel/blob');
 
 const BLOB_KEY = 'bookings.json';
 
 async function getBookings() {
   try {
-    const { blobs } = await list({ prefix: BLOB_KEY });
-    if (blobs.length > 0) {
-      const latestBlob = blobs[blobs.length - 1];
-      const response = await fetch(latestBlob.downloadUrl || latestBlob.url);
-      if (!response.ok) {
-        console.error('[bookings] Blob fetch failed:', response.status);
-        return [];
+    const result = await getBlob(BLOB_KEY, { access: 'private' });
+    if (result && result.statusCode === 200 && result.stream) {
+      const chunks = [];
+      for await (const chunk of result.stream) {
+        chunks.push(chunk);
       }
-      const text = await response.text();
+      const text = Buffer.concat(chunks).toString('utf-8');
       if (!text || text.trim() === '') return [];
       return JSON.parse(text);
     }
+    return [];
   } catch (err) {
     console.error('[bookings] getBookings error:', err.message);
+    return [];
   }
-  return [];
 }
 
 async function saveBookings(bookings) {
@@ -37,37 +36,34 @@ async function saveBookings(bookings) {
 
   const errors = [];
 
-  // Try 1: with access: 'public'
-  try {
-    const blob = await put(BLOB_KEY, payload, { ...options, access: 'public' });
-    console.log('[bookings] Saved (public)');
-    return blob;
-  } catch (err1) {
-    errors.push('public: ' + err1.message);
-    console.log('[bookings] public failed:', err1.message);
-  }
-
-  // Try 2: without access param
-  try {
-    const blob = await put(BLOB_KEY, payload, options);
-    console.log('[bookings] Saved (no-access)');
-    return blob;
-  } catch (err2) {
-    errors.push('no-access: ' + err2.message);
-    console.log('[bookings] no-access failed:', err2.message);
-  }
-
-  // Try 3: with access: 'private'
+  // Try 1: private access (store is private)
   try {
     const blob = await put(BLOB_KEY, payload, { ...options, access: 'private' });
     console.log('[bookings] Saved (private)');
     return blob;
-  } catch (err3) {
-    errors.push('private: ' + err3.message);
-    console.log('[bookings] private failed:', err3.message);
+  } catch (err1) {
+    errors.push('private: ' + err1.message);
   }
 
-  throw new Error('All blob save attempts failed: ' + errors.join(' | '));
+  // Try 2: public access
+  try {
+    const blob = await put(BLOB_KEY, payload, { ...options, access: 'public' });
+    console.log('[bookings] Saved (public)');
+    return blob;
+  } catch (err2) {
+    errors.push('public: ' + err2.message);
+  }
+
+  // Try 3: no access param
+  try {
+    const blob = await put(BLOB_KEY, payload, options);
+    console.log('[bookings] Saved (default)');
+    return blob;
+  } catch (err3) {
+    errors.push('default: ' + err3.message);
+  }
+
+  throw new Error('All save attempts failed: ' + errors.join(' | '));
 }
 
 // 時間の重なりを判定する関数
