@@ -4,17 +4,17 @@
 
 /* === Design Tokens === */
 :root {
-  --bg: #fafafa;
+  --bg: #ffffff;
   --bg-white: #ffffff;
-  --bg-warm: #fef9f3;
-  --bg-section: #f5f0eb;
+  --bg-warm: #ffffff;
+  --bg-section: #f5f5f5;
   --bg-dark: #1c1917;
   --text-primary: #1c1917;
   --text-secondary: #57534e;
   --text-muted: #a8a29e;
   --accent: #d4845a;
   --accent-hover: #c0703f;
-  --accent-light: #fbeee6;
+  --accent-light: #f5f5f5;
   --accent-glow: rgba(212,132,90,0.12);
   --border: #e7e5e4;
   --border-light: #f0efee;
@@ -1673,7 +1673,7 @@ input, textarea { font-family: inherit; font-size: inherit; }
   }
   .main-nav.open .nav-link:hover,
   .main-nav.open .nav-link.active {
-    background: #f5f0eb;
+    background: #f5f5f5;
     color: var(--accent);
   }
   .main-nav.open .nav-link::after {
@@ -2121,7 +2121,7 @@ input, textarea { font-family: inherit; font-size: inherit; }
 
 /* === Referral Section === */
 .referral-section {
-  background: linear-gradient(135deg, #fef9f3 0%, #fbeee6 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
 }
 
 .referral-card {
