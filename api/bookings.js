@@ -35,24 +35,39 @@ async function saveBookings(bookings) {
     addRandomSuffix: false
   };
 
+  const errors = [];
+
+  // Try 1: with access: 'public'
   try {
-    // Try with public access first
     const blob = await put(BLOB_KEY, payload, { ...options, access: 'public' });
-    console.log('[bookings] Saved to blob (public)');
+    console.log('[bookings] Saved (public)');
     return blob;
   } catch (err1) {
-    console.log('[bookings] Public access failed, trying without access param:', err1.message);
-    try {
-      const blob = await put(BLOB_KEY, payload, options);
-      console.log('[bookings] Saved to blob (default)');
-      return blob;
-    } catch (err2) {
-      console.log('[bookings] Default failed, trying private:', err2.message);
-      const blob = await put(BLOB_KEY, payload, { ...options, access: 'private' });
-      console.log('[bookings] Saved to blob (private)');
-      return blob;
-    }
+    errors.push('public: ' + err1.message);
+    console.log('[bookings] public failed:', err1.message);
   }
+
+  // Try 2: without access param
+  try {
+    const blob = await put(BLOB_KEY, payload, options);
+    console.log('[bookings] Saved (no-access)');
+    return blob;
+  } catch (err2) {
+    errors.push('no-access: ' + err2.message);
+    console.log('[bookings] no-access failed:', err2.message);
+  }
+
+  // Try 3: with access: 'private'
+  try {
+    const blob = await put(BLOB_KEY, payload, { ...options, access: 'private' });
+    console.log('[bookings] Saved (private)');
+    return blob;
+  } catch (err3) {
+    errors.push('private: ' + err3.message);
+    console.log('[bookings] private failed:', err3.message);
+  }
+
+  throw new Error('All blob save attempts failed: ' + errors.join(' | '));
 }
 
 // 時間の重なりを判定する関数
