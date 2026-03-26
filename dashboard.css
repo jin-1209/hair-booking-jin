@@ -2333,3 +2333,299 @@ img { max-width:100%; display:block; }
   }
 }
 
+/* ==========================================
+   Booking Timeline View — 縦型予約表
+   ========================================== */
+.booking-timeline-view {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0ebe6;
+  background: #faf8f5;
+}
+
+.timeline-date-display {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  min-width: 180px;
+  text-align: center;
+}
+
+.timeline-nav-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e0d8ce;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.timeline-nav-btn:hover {
+  background: #f0ebe6;
+  color: #1a1a1a;
+}
+
+.timeline-today-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--accent, #c19a6b);
+  background: transparent;
+  color: var(--accent, #c19a6b);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeline-today-btn:hover {
+  background: var(--accent, #c19a6b);
+  color: #fff;
+}
+
+.day-timeline {
+  padding: 0 0 16px 0;
+  position: relative;
+}
+
+/* 時間帯スロット */
+.tl-slot {
+  display: flex;
+  min-height: 54px;
+  border-bottom: 1px solid #f5f1ed;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.tl-slot:hover {
+  background: #faf8f5;
+}
+
+.tl-slot.tl-slot-hour {
+  border-bottom-color: #e8e0d8;
+}
+
+.tl-slot-time {
+  width: 70px;
+  min-width: 70px;
+  padding: 8px 14px 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #888;
+  text-align: right;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.tl-slot-time.tl-hour-time {
+  color: #555;
+  font-weight: 600;
+}
+
+.tl-slot-line {
+  width: 1px;
+  background: #e0d8ce;
+  margin: 0 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tl-slot-line::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.tl-slot.tl-slot-booked .tl-slot-line::before {
+  background: var(--accent, #c19a6b);
+  box-shadow: 0 0 0 3px rgba(193, 154, 107, 0.15);
+}
+
+.tl-slot-content {
+  flex: 1;
+  padding: 6px 16px 6px 0;
+  display: flex;
+  align-items: flex-start;
+  min-height: 42px;
+}
+
+/* 予約カード */
+.tl-booking-card {
+  flex: 1;
+  background: linear-gradient(135deg, #f8f3ed, #faf7f2);
+  border-left: 3px solid var(--accent, #c19a6b);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: tlSlideIn 0.3s ease;
+}
+
+@keyframes tlSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.tl-booking-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent, #c19a6b);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.tl-booking-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tl-booking-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-booking-menu {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.tl-booking-price {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--accent, #c19a6b);
+  white-space: nowrap;
+}
+
+.tl-booking-status {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tl-booking-status.st-confirmed { background: #e8f5e9; color: #2e7d32; }
+.tl-booking-status.st-pending { background: #fff3e0; color: #e65100; }
+.tl-booking-status.st-completed { background: #e3f2fd; color: #1565c0; }
+.tl-booking-status.st-cancelled { background: #fce4ec; color: #c62828; text-decoration: line-through; }
+
+/* 現在時刻ライン */
+.tl-now-line {
+  position: absolute;
+  left: 82px;
+  right: 16px;
+  height: 2px;
+  background: #e53935;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tl-now-line::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53935;
+}
+
+/* 空きスロットのテキスト */
+.tl-empty-text {
+  color: #ccc;
+  font-size: 0.78rem;
+  font-style: italic;
+  padding-top: 5px;
+}
+
+/* 日付サマリー */
+.tl-day-summary {
+  display: flex;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #faf8f5;
+  border-bottom: 1px solid #f0ebe6;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.tl-day-summary span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tl-day-summary strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .timeline-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .timeline-date-display {
+    font-size: 0.95rem;
+    min-width: 140px;
+  }
+
+  .tl-slot-time {
+    width: 52px;
+    min-width: 52px;
+    padding: 8px 8px 8px 10px;
+    font-size: 0.75rem;
+  }
+
+  .tl-booking-card {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .tl-booking-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+
+  .tl-booking-name {
+    font-size: 0.82rem;
+  }
+}
+

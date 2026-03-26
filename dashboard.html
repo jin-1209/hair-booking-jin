@@ -173,26 +173,43 @@
 
     <!-- ========== Bookings Section ========== -->
     <section class="section" id="sectionBookings">
-      <div class="section-toolbar">
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="bookingSearch" placeholder="予約を検索...">
+      <!-- 縦型タイムライン -->
+      <div class="booking-timeline-view">
+        <div class="timeline-header">
+          <button class="timeline-nav-btn" id="timelinePrev">‹</button>
+          <h3 class="timeline-date-display" id="timelineDateDisplay"></h3>
+          <button class="timeline-nav-btn" id="timelineNext">›</button>
+          <button class="timeline-today-btn" id="timelineToday">今日</button>
         </div>
-        <div class="filter-group">
-          <select id="bookingFilter" class="filter-select">
-            <option value="all">すべて</option>
-            <option value="confirmed">確定</option>
-            <option value="pending">保留中</option>
-            <option value="completed">完了</option>
-            <option value="cancelled">キャンセル</option>
-          </select>
+        <div class="day-timeline" id="dayTimeline">
+          <!-- 時間帯スロットがJSで生成される -->
         </div>
       </div>
-      <div class="table-container">
-        <table class="data-table" id="bookingsTable">
-          <thead><tr><th>予約ID</th><th>お客様</th><th>メニュー</th><th>日時</th><th>料金</th><th>ステータス</th><th>操作</th></tr></thead>
-          <tbody id="bookingsTableBody"></tbody>
-        </table>
+
+      <!-- テーブルビュー -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header"><h3>予約一覧</h3></div>
+        <div class="section-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="bookingSearch" placeholder="予約を検索...">
+          </div>
+          <div class="filter-group">
+            <select id="bookingFilter" class="filter-select">
+              <option value="all">すべて</option>
+              <option value="confirmed">確定</option>
+              <option value="pending">保留中</option>
+              <option value="completed">完了</option>
+              <option value="cancelled">キャンセル</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="bookingsTable">
+            <thead><tr><th>予約ID</th><th>お客様</th><th>メニュー</th><th>日時</th><th>料金</th><th>ステータス</th><th>操作</th></tr></thead>
+            <tbody id="bookingsTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 

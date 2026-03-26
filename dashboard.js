@@ -208,6 +208,7 @@ function initDashboard() {
   initCoupons();
   initAnalyticsExtra();
   initReviewsManage();
+  initBookingTimeline();
 
   // サーバーから最新予約を取得して反映
   syncBookingsFromServer();
@@ -222,6 +223,7 @@ function syncBookingsFromServer() {
     if (bookings) {
       renderOverviewTimeline();
       renderRecentBookings();
+      renderDayTimeline();
       // 現在のフィルタを維持して予約テーブルを再レンダリング
       const bs = document.getElementById('bookingSearch');
       const bf = document.getElementById('bookingFilter');
@@ -302,6 +304,10 @@ function switchSection(section) {
   // Redraw charts when switching to sections with canvases
   if (section === 'analytics' || section === 'overview') {
     requestAnimationFrame(() => { setTimeout(() => initCharts(), 100); });
+  }
+  // 予約管理に切り替えたらタイムラインを更新
+  if (section === 'bookings') {
+    renderDayTimeline();
   }
 }
 
@@ -1707,5 +1713,164 @@ async function reviewAction(id, action) {
   } catch (err) {
     showToast('通信エラーが発生しました');
   }
+}
+
+// ==========================================
+// 予約タイムラインビュー（縦型）
+// ==========================================
+let timelineDate = new Date();
+
+function initBookingTimeline() {
+  const prevBtn = document.getElementById('timelinePrev');
+  const nextBtn = document.getElementById('timelineNext');
+  const todayBtn = document.getElementById('timelineToday');
+
+  if (!prevBtn) return;
+
+  prevBtn.addEventListener('click', () => {
+    timelineDate.setDate(timelineDate.getDate() - 1);
+    renderDayTimeline();
+  });
+  nextBtn.addEventListener('click', () => {
+    timelineDate.setDate(timelineDate.getDate() + 1);
+    renderDayTimeline();
+  });
+  todayBtn.addEventListener('click', () => {
+    timelineDate = new Date();
+    renderDayTimeline();
+  });
+
+  renderDayTimeline();
+}
+
+function renderDayTimeline() {
+  const container = document.getElementById('dayTimeline');
+  const dateDisplay = document.getElementById('timelineDateDisplay');
+  if (!container || !dateDisplay) return;
+
+  const dateStr = formatDateISO(timelineDate);
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+  const dayOfWeek = dayNames[timelineDate.getDay()];
+  const todayStr = formatDateISO(new Date());
+  const isToday = dateStr === todayStr;
+
+  // 日付表示
+  const m = timelineDate.getMonth() + 1;
+  const d = timelineDate.getDate();
+  dateDisplay.textContent = `${timelineDate.getFullYear()}年${m}月${d}日（${dayOfWeek}）`;
+  if (isToday) dateDisplay.textContent += ' ← 今日';
+
+  // 予約データを取得
+  const allBookings = getBookings();
+  const dayBookings = allBookings.filter(b =>
+    b.date === dateStr && b.status !== 'cancelled'
+  );
+
+  // サーバーからも取得（非同期で更新）
+  fetchTimelineFromServer(dateStr).then(serverBookings => {
+    if (serverBookings && serverBookings.length > 0) {
+      renderTimelineSlots(container, dateStr, mergeBookings(dayBookings, serverBookings), isToday);
+    }
+  });
+
+  renderTimelineSlots(container, dateStr, dayBookings, isToday);
+}
+
+function mergeBookings(local, server) {
+  const map = new Map();
+  local.forEach(b => map.set(b.time + '_' + b.date, b));
+  server.forEach(b => {
+    const key = b.time + '_' + b.date;
+    if (!map.has(key)) map.set(key, b);
+  });
+  return Array.from(map.values());
+}
+
+function fetchTimelineFromServer(dateStr) {
+  return fetch(`/api/bookings?date=${dateStr}`)
+    .then(r => r.json())
+    .then(result => {
+      if (result.success && result.bookings) return result.bookings;
+      return [];
+    })
+    .catch(() => []);
+}
+
+function renderTimelineSlots(container, dateStr, bookings, isToday) {
+  const statusLabels = { confirmed: '確定', pending: '保留中', completed: '完了', cancelled: 'キャンセル' };
+  const startHour = 10;
+  const endHour = 20;
+
+  // サマリー
+  const totalBookings = bookings.length;
+  const totalRevenue = bookings.reduce((s, b) => s + (b.price || 0), 0);
+  let summaryHTML = `<div class="tl-day-summary">
+    <span>予約数: <strong>${totalBookings}件</strong></span>
+    <span>売上: <strong>$${totalRevenue.toLocaleString()}</strong></span>
+  </div>`;
+
+  // 時間帯スロット 30分刻み
+  let slotsHTML = '';
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  let nowLineAdded = false;
+
+  for (let h = startHour; h < endHour; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      const slotMinutes = h * 60 + m;
+      const isHour = m === 0;
+
+      // この時間帯に予約があるか
+      const booking = bookings.find(b => b.time === timeStr);
+
+      // 現在時刻ライン
+      let nowLine = '';
+      if (isToday && !nowLineAdded && slotMinutes >= nowMinutes) {
+        const offset = ((nowMinutes - (startHour * 60)) / 30) * 54;
+        nowLine = `<div class="tl-now-line" style="top: ${offset + 38}px;"></div>`;
+        nowLineAdded = true;
+      }
+
+      const bookedClass = booking ? ' tl-slot-booked' : '';
+      const hourClass = isHour ? ' tl-slot-hour' : '';
+      const timeClass = isHour ? ' tl-hour-time' : '';
+
+      let contentHTML = '';
+      if (booking) {
+        const initial = (booking.client || 'G')[0];
+        const statusBadge = statusLabels[booking.status] || booking.status;
+        contentHTML = `
+          <div class="tl-booking-card">
+            <div class="tl-booking-avatar">${initial}</div>
+            <div class="tl-booking-info">
+              <div class="tl-booking-name">${booking.client || 'Guest'}</div>
+              <div class="tl-booking-menu">${booking.menu || ''} ${booking.duration ? '(' + booking.duration + '分)' : ''}</div>
+            </div>
+            <div class="tl-booking-price">$${booking.price || 0}</div>
+            <span class="tl-booking-status st-${booking.status || 'confirmed'}">${statusBadge}</span>
+          </div>`;
+      } else {
+        contentHTML = '<span class="tl-empty-text">—</span>';
+      }
+
+      slotsHTML += `
+        ${nowLine}
+        <div class="tl-slot${hourClass}${bookedClass}">
+          <div class="tl-slot-time${timeClass}">${timeStr}</div>
+          <div class="tl-slot-line"></div>
+          <div class="tl-slot-content">${contentHTML}</div>
+        </div>`;
+    }
+  }
+
+  container.innerHTML = summaryHTML + slotsHTML;
+}
+
+function formatDateISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
