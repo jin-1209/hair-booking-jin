@@ -104,9 +104,57 @@ const DEMO_BOOKINGS = [
   { id:'B010', client:'加藤 美紀', phone:'', menu:'カット + カラー', date:'2026-03-14', time:'10:00', price:120, status:'cancelled' }
 ];
 
-// --- Unified Booking Data ---
+// --- Unified Booking Data (Server API + localStorage cache) ---
+const DASHBOARD_AUTH = 'Bearer jin2025';
+
 function getBookings() { return loadData('salonBookings', DEMO_BOOKINGS); }
 function saveBookings(b) { saveData('salonBookings', b); }
+
+// サーバーから全予約を取得しlocalStorageにキャッシュ
+function fetchBookingsFromServer() {
+  return fetch('/api/bookings?all=true', {
+    headers: { 'Authorization': DASHBOARD_AUTH }
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.success && result.bookings) {
+      saveBookings(result.bookings);
+      console.log(`サーバーから${result.bookings.length}件の予約を取得`);
+      return result.bookings;
+    }
+    return null;
+  })
+  .catch(err => {
+    console.warn('サーバー予約取得エラー（ローカルキャッシュ使用）:', err.message);
+    return null;
+  });
+}
+
+// サーバーでステータスを更新
+function updateBookingOnServer(bookingId, newStatus) {
+  return fetch('/api/bookings', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': DASHBOARD_AUTH
+    },
+    body: JSON.stringify({ id: bookingId, status: newStatus })
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.success) {
+      console.log(`サーバー予約更新: ${bookingId} → ${newStatus}`);
+    } else {
+      console.warn('サーバー予約更新失敗:', result.error);
+    }
+    return result;
+  })
+  .catch(err => {
+    console.warn('サーバー予約更新エラー:', err.message);
+    return { success: false };
+  });
+}
+
 function addBooking(booking) {
   const bookings = getBookings();
   booking.id = 'B' + String(bookings.length + 1).padStart(3, '0');
@@ -160,6 +208,42 @@ function initDashboard() {
   initCoupons();
   initAnalyticsExtra();
   initReviewsManage();
+
+  // サーバーから最新予約を取得して反映
+  syncBookingsFromServer();
+
+  // 60秒ごとに自動リフレッシュ（新規予約をキャッチ）
+  setInterval(syncBookingsFromServer, 60000);
+}
+
+// サーバーから予約を取得し、画面全体を更新
+function syncBookingsFromServer() {
+  fetchBookingsFromServer().then(bookings => {
+    if (bookings) {
+      renderOverviewTimeline();
+      renderRecentBookings();
+      // 現在のフィルタを維持して予約テーブルを再レンダリング
+      const bs = document.getElementById('bookingSearch');
+      const bf = document.getElementById('bookingFilter');
+      renderBookingsTable(bf?.value, bs?.value);
+      // KPIも更新
+      updateKPI();
+    }
+  });
+}
+
+// KPIカード（概要）を最新予約データで更新
+function updateKPI() {
+  const bookings = getBookings();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayBookings = bookings.filter(b => b.date === todayStr && b.status !== 'cancelled');
+  const monthStr = todayStr.substring(0, 7); // YYYY-MM
+  const monthBookings = bookings.filter(b => b.date.startsWith(monthStr) && b.status !== 'cancelled');
+  const monthRevenue = monthBookings.reduce((s, b) => s + (b.price || 0), 0);
+
+  const kpiNums = document.querySelectorAll('.kpi-number');
+  if (kpiNums[0]) kpiNums[0].textContent = todayBookings.length;
+  if (kpiNums[1]) kpiNums[1].textContent = '$' + monthRevenue.toLocaleString();
 }
 
 // ==========================================
@@ -308,45 +392,52 @@ function changeBookingStatus(bookingId, action) {
   const b = bookings.find(x => x.id === bookingId);
   if (!b) return;
 
+  let newStatus = '';
   if (action === 'confirm' && b.status === 'pending') {
-    b.status = 'confirmed';
+    newStatus = 'confirmed';
     showToast('予約を確定しました');
   } else if (action === 'complete' && b.status === 'confirmed') {
-    b.status = 'completed';
+    newStatus = 'completed';
     showToast('施術完了にしました');
   } else if (action === 'cancel' && (b.status === 'pending' || b.status === 'confirmed')) {
     if (!confirm(`${b.client}の予約をキャンセルしますか？\n${b.menu} - ${b.date} ${b.time}`)) return;
-    b.status = 'cancelled';
+    newStatus = 'cancelled';
     showToast('予約をキャンセルしました');
-
-    // キャンセルSMS送信
-    if (b.phone) {
-      fetch('/api/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'cancellation',
-          channel: 'whatsapp',
-          to: b.phone,
-          customerName: b.client,
-          menuName: b.menu,
-          date: b.date,
-          time: b.time,
-          phone: b.phone
-        })
-      })
-      .then(r => r.json())
-      .then(result => console.log('Cancellation WhatsApp sent:', result))
-      .catch(err => console.error('Cancellation WhatsApp error:', err));
-    }
   } else {
     return;
   }
 
+  // ローカルを即時更新（UI反映）
+  b.status = newStatus;
   saveBookings(bookings);
   renderBookingsTable();
   renderRecentBookings();
   renderOverviewTimeline();
+  updateKPI();
+
+  // サーバーにも同期（予約サイトの空き状況に反映）
+  updateBookingOnServer(bookingId, newStatus);
+
+  // キャンセル時WhatsApp送信
+  if (newStatus === 'cancelled' && b.phone) {
+    fetch('/api/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'cancellation',
+        channel: 'whatsapp',
+        to: b.phone,
+        customerName: b.client,
+        menuName: b.menu,
+        date: b.date,
+        time: b.time,
+        phone: b.phone
+      })
+    })
+    .then(r => r.json())
+    .then(result => console.log('Cancellation WhatsApp sent:', result))
+    .catch(err => console.error('Cancellation WhatsApp error:', err));
+  }
 }
 
 function initSearch() {
@@ -460,7 +551,10 @@ function openShiftDayModal(dateStr) {
 }
 
 function getShifts() { return loadData('salonShifts', {}); }
-function saveShifts(s) { saveData('salonShifts', s); }
+function saveShifts(s) {
+  saveData('salonShifts', s);
+  syncShiftsToServer();
+}
 
 function getClosedDays() {
   const settings = loadData('salonShiftSettings', { closedDays: [2] });
@@ -478,6 +572,22 @@ function saveShiftSettings() {
     closedDays
   };
   saveData('salonShiftSettings', settings);
+  syncShiftsToServer();
+}
+
+// シフトデータをサーバーに同期
+function syncShiftsToServer() {
+  const siteData = getSiteData();
+  siteData.shiftSettings = loadData('salonShiftSettings', {});
+  siteData.shifts = loadData('salonShifts', {});
+  fetch('/api/site-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': DASHBOARD_AUTH },
+    body: JSON.stringify(siteData)
+  })
+  .then(res => res.json())
+  .then(r => { if (r.success) console.log('シフトをサーバーに同期'); })
+  .catch(e => console.warn('シフト同期エラー:', e.message));
 }
 
 function loadShiftSettings() {
@@ -1099,7 +1209,29 @@ function renderSchedule() { /* used by overview timeline */ }
 // Site Management
 // ==========================================
 function getManagedMenuItems() { return loadData('salonMenuItems', JSON.parse(JSON.stringify(DEFAULT_MENU_ITEMS))); }
-function saveManagedMenuItems(items) { saveData('salonMenuItems', items); }
+function saveManagedMenuItems(items) {
+  saveData('salonMenuItems', items);
+  // サーバーにもメニューを同期（全デバイス共有）
+  syncMenuToServer(items);
+}
+
+// サーバーへメニューデータを同期
+function syncMenuToServer(items) {
+  fetch('/api/site-data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': DASHBOARD_AUTH
+    },
+    body: JSON.stringify({ ...getSiteData(), menuItems: items })
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.success) console.log('メニューをサーバーに同期しました');
+    else console.warn('メニュー同期失敗:', result.error);
+  })
+  .catch(err => console.warn('メニューサーバー同期エラー:', err.message));
+}
 
 // デフォルト値とlocalStorageの保存済みデータをマージして返す
 function getSiteData() {

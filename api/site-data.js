@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
       if (blobs.length > 0) {
         // 最新のBlobを取得
         const latestBlob = blobs[blobs.length - 1];
-        const response = await fetch(latestBlob.url);
+        const response = await fetch(latestBlob.downloadUrl || latestBlob.url);
         const data = await response.json();
         
         // 1時間キャッシュ（CDN）、クライアント側は30秒
@@ -63,7 +63,6 @@ module.exports = async (req, res) => {
 
       // Blob Storageに保存
       const blob = await put(BLOB_KEY, JSON.stringify(siteData), {
-        access: 'public',
         contentType: 'application/json',
         addRandomSuffix: false
       });

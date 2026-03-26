@@ -12,7 +12,7 @@ async function getReviews() {
     const { blobs } = await list({ prefix: BLOB_KEY });
     if (blobs.length > 0) {
       const latestBlob = blobs[blobs.length - 1];
-      const response = await fetch(latestBlob.url);
+      const response = await fetch(latestBlob.downloadUrl || latestBlob.url);
       return await response.json();
     }
   } catch (err) {
@@ -23,7 +23,6 @@ async function getReviews() {
 
 async function saveReviews(reviews) {
   const blob = await put(BLOB_KEY, JSON.stringify(reviews), {
-    access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false
   });

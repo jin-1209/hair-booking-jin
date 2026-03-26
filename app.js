@@ -645,8 +645,24 @@ function fetchSiteDataFromServer() {
     .then(res => res.json())
     .then(result => {
       if (result.success && result.data) {
-        // Save to localStorage as cache
-        localStorage.setItem('salonSiteData', JSON.stringify(result.data));
+        // メニューデータが含まれていれば分離して保存
+        if (result.data.menuItems) {
+          localStorage.setItem('salonMenuItems', JSON.stringify(result.data.menuItems));
+          if (typeof initMenuSection === 'function') initMenuSection();
+        }
+        // シフト設定が含まれていれば保存（カレンダーの定休日・営業時間に反映）
+        if (result.data.shiftSettings) {
+          localStorage.setItem('salonShiftSettings', JSON.stringify(result.data.shiftSettings));
+        }
+        if (result.data.shifts) {
+          localStorage.setItem('salonShifts', JSON.stringify(result.data.shifts));
+        }
+        // 専用データを除いてサイトデータとして保存
+        const siteData = { ...result.data };
+        delete siteData.menuItems;
+        delete siteData.shiftSettings;
+        delete siteData.shifts;
+        localStorage.setItem('salonSiteData', JSON.stringify(siteData));
         // Re-apply to DOM
         applySiteData();
       }

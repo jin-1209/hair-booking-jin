@@ -13,22 +13,33 @@ async function getBookings() {
     const { blobs } = await list({ prefix: BLOB_KEY });
     if (blobs.length > 0) {
       const latestBlob = blobs[blobs.length - 1];
-      const response = await fetch(latestBlob.url);
-      return await response.json();
+      const response = await fetch(latestBlob.downloadUrl || latestBlob.url);
+      if (!response.ok) {
+        console.error('[bookings] Blob fetch failed:', response.status);
+        return [];
+      }
+      const text = await response.text();
+      if (!text || text.trim() === '') return [];
+      return JSON.parse(text);
     }
   } catch (err) {
-    console.error('Error fetching bookings:', err);
+    console.error('[bookings] getBookings error:', err.message);
   }
   return [];
 }
 
 async function saveBookings(bookings) {
-  const blob = await put(BLOB_KEY, JSON.stringify(bookings), {
-    access: 'public',
-    contentType: 'application/json',
-    addRandomSuffix: false
-  });
-  return blob;
+  try {
+    const blob = await put(BLOB_KEY, JSON.stringify(bookings), {
+      contentType: 'application/json',
+      addRandomSuffix: false
+    });
+    console.log('[bookings] Saved to blob');
+    return blob;
+  } catch (err) {
+    console.error('[bookings] saveBookings error:', err.message);
+    throw err;
+  }
 }
 
 // 時間の重なりを判定する関数
