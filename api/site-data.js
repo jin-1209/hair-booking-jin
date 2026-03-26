@@ -61,11 +61,19 @@ module.exports = async (req, res) => {
       // 写真データは保存しない（大きすぎるため）
       delete siteData.profilePhoto;
 
-      // Blob Storageに保存
-      const blob = await put(BLOB_KEY, JSON.stringify(siteData), {
-        contentType: 'application/json',
-        addRandomSuffix: false
-      });
+      // Blob Storageに保存（Public/Privateどちらでも対応）
+      const payload = JSON.stringify(siteData);
+      const options = { contentType: 'application/json', addRandomSuffix: false };
+      let blob;
+      try {
+        blob = await put(BLOB_KEY, payload, { ...options, access: 'public' });
+      } catch (e1) {
+        try {
+          blob = await put(BLOB_KEY, payload, options);
+        } catch (e2) {
+          blob = await put(BLOB_KEY, payload, { ...options, access: 'private' });
+        }
+      }
 
       console.log('Site data saved:', blob.url);
 

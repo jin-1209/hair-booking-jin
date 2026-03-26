@@ -22,11 +22,17 @@ async function getReviews() {
 }
 
 async function saveReviews(reviews) {
-  const blob = await put(BLOB_KEY, JSON.stringify(reviews), {
-    contentType: 'application/json',
-    addRandomSuffix: false
-  });
-  return blob;
+  const payload = JSON.stringify(reviews);
+  const options = { contentType: 'application/json', addRandomSuffix: false };
+  try {
+    return await put(BLOB_KEY, payload, { ...options, access: 'public' });
+  } catch (e1) {
+    try {
+      return await put(BLOB_KEY, payload, options);
+    } catch (e2) {
+      return await put(BLOB_KEY, payload, { ...options, access: 'private' });
+    }
+  }
 }
 
 module.exports = async (req, res) => {

@@ -29,16 +29,29 @@ async function getBookings() {
 }
 
 async function saveBookings(bookings) {
+  const payload = JSON.stringify(bookings);
+  const options = {
+    contentType: 'application/json',
+    addRandomSuffix: false
+  };
+
   try {
-    const blob = await put(BLOB_KEY, JSON.stringify(bookings), {
-      contentType: 'application/json',
-      addRandomSuffix: false
-    });
-    console.log('[bookings] Saved to blob');
+    // Try with public access first
+    const blob = await put(BLOB_KEY, payload, { ...options, access: 'public' });
+    console.log('[bookings] Saved to blob (public)');
     return blob;
-  } catch (err) {
-    console.error('[bookings] saveBookings error:', err.message);
-    throw err;
+  } catch (err1) {
+    console.log('[bookings] Public access failed, trying without access param:', err1.message);
+    try {
+      const blob = await put(BLOB_KEY, payload, options);
+      console.log('[bookings] Saved to blob (default)');
+      return blob;
+    } catch (err2) {
+      console.log('[bookings] Default failed, trying private:', err2.message);
+      const blob = await put(BLOB_KEY, payload, { ...options, access: 'private' });
+      console.log('[bookings] Saved to blob (private)');
+      return blob;
+    }
   }
 }
 
