@@ -3,7 +3,7 @@
 // オフライン対応 + キャッシュ管理
 // ================================================
 
-const CACHE_NAME = 'jin-beauty-v1';
+const CACHE_NAME = 'jin-beauty-v2';
 const OFFLINE_URL = 'offline.html';
 
 // キャッシュするファイル一覧

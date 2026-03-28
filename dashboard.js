@@ -209,6 +209,7 @@ function initDashboard() {
   initAnalyticsExtra();
   initReviewsManage();
   initBookingTimeline();
+  initManualBooking();
 
   // サーバーから最新予約を取得して反映
   syncBookingsFromServer();
@@ -454,6 +455,190 @@ function initSearch() {
 }
 
 // ==========================================
+// Manual Booking (手動予約追加)
+// ==========================================
+function openManualBookingModal(dateStr, timeStr) {
+  const modal = document.getElementById('addBookingModal');
+  const dateInput = document.getElementById('newBookingDate');
+  const timeInput = document.getElementById('newBookingTime');
+
+  if (!modal) return;
+  resetManualBookingForm();
+  populateMenuOptions();
+  
+  if (dateInput) {
+    dateInput.value = dateStr || new Date().toISOString().split('T')[0];
+  }
+  if (timeStr && timeInput) {
+    timeInput.value = timeStr;
+  }
+  
+  modal.classList.add('open');
+}
+
+function initManualBooking() {
+  const modal = document.getElementById('addBookingModal');
+  const openBtn = document.getElementById('addBookingBtn');
+  const closeBtn = document.getElementById('addBookingModalClose');
+  const cancelBtn = document.getElementById('addBookingCancelBtn');
+  const form = document.getElementById('addBookingForm');
+  const menuSelect = document.getElementById('newBookingMenu');
+  const priceInput = document.getElementById('newBookingPrice');
+  const dateInput = document.getElementById('newBookingDate');
+  const errorEl = document.getElementById('addBookingError');
+
+  if (!modal || !openBtn) return;
+
+  // モーダルを開く
+  openBtn.addEventListener('click', () => {
+    openManualBookingModal();
+  });
+
+  // モーダルを閉じる
+  closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
+  cancelBtn?.addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+  // メニュー選択で料金を自動入力
+  menuSelect?.addEventListener('change', () => {
+    const selected = menuSelect.value;
+    if (!selected) { priceInput.value = ''; return; }
+    const menuItems = getManagedMenuItems();
+    const item = menuItems.find(m => {
+      const name = typeof m.name === 'string' ? m.name : (m.name.ja || '');
+      return name === selected;
+    });
+    if (item) {
+      const numPrice = item.priceNum || parseInt(String(item.price).replace(/[^0-9]/g, '')) || 0;
+      priceInput.value = numPrice;
+    }
+  });
+
+  // フォーム送信
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    const client = document.getElementById('newBookingClient').value.trim();
+    const phone = document.getElementById('newBookingPhone').value.trim();
+    const email = document.getElementById('newBookingEmail').value.trim();
+    const menu = menuSelect.value;
+    const date = dateInput.value;
+    const time = document.getElementById('newBookingTime').value;
+    const price = parseInt(priceInput.value) || 0;
+    const status = document.getElementById('newBookingStatus').value;
+    const note = document.getElementById('newBookingNote').value.trim();
+
+    // バリデーション
+    if (!client) { showBookingError('お客様名を入力してください。'); return; }
+    if (!menu) { showBookingError('メニューを選択してください。'); return; }
+    if (!date) { showBookingError('日付を選択してください。'); return; }
+    if (!time) { showBookingError('時間を選択してください。'); return; }
+
+    // 施術時間を取得
+    const menuItems = getManagedMenuItems();
+    const menuItem = menuItems.find(m => {
+      const name = typeof m.name === 'string' ? m.name : (m.name.ja || '');
+      return name === menu;
+    });
+    const duration = menuItem?.timeNum || 60;
+
+    // 送信ボタンを無効化
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '登録中...';
+
+    try {
+      // サーバーAPIで登録（ダブルブッキング防止チェック込み）
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client, phone, email, menu, date, time, price, duration, note
+        })
+      });
+      const result = await response.json();
+
+      if (response.status === 409) {
+        // ダブルブッキング
+        showBookingError(`この時間帯は既に予約が入っています（${result.conflict?.existingTime} ${result.conflict?.existingMenu}）。別の時間を選択してください。`);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        showBookingError(result.error || '予約の登録に失敗しました。');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      // ステータスが保留中の場合、サーバー側でconfirmedになるのでPUTで上書き
+      if (status === 'pending' && result.booking?.id) {
+        await updateBookingOnServer(result.booking.id, 'pending');
+      }
+
+      // ローカルキャッシュを更新
+      await syncBookingsFromServer();
+
+      // モーダルを閉じる
+      modal.classList.remove('open');
+      showToast(`${client}の予約を追加しました`);
+
+    } catch (err) {
+      // サーバー不到達の場合はローカルに保存
+      console.warn('サーバー登録失敗、ローカルに保存:', err.message);
+      const newBooking = addBooking({
+        client, phone, email, menu, date, time, price, duration,
+        note, status, createdAt: new Date().toISOString()
+      });
+      renderBookingsTable();
+      renderRecentBookings();
+      renderOverviewTimeline();
+      renderDayTimeline();
+      updateKPI();
+      modal.classList.remove('open');
+      showToast(`${client}の予約を追加しました（オフライン）`);
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  });
+}
+
+function populateMenuOptions() {
+  const menuSelect = document.getElementById('newBookingMenu');
+  if (!menuSelect) return;
+  const menuItems = getManagedMenuItems();
+  menuSelect.innerHTML = '<option value="">メニューを選択...</option>';
+  menuItems.forEach(item => {
+    const name = typeof item.name === 'string' ? item.name : (item.name.ja || item.name.en || '');
+    const price = item.price || '';
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = `${name}（${price}）`;
+    menuSelect.appendChild(opt);
+  });
+}
+
+function resetManualBookingForm() {
+  const form = document.getElementById('addBookingForm');
+  if (form) form.reset();
+  const errorEl = document.getElementById('addBookingError');
+  if (errorEl) errorEl.style.display = 'none';
+}
+
+function showBookingError(message) {
+  const errorEl = document.getElementById('addBookingError');
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+  }
+}
+
+// ==========================================
 // Shifts
 // ==========================================
 let shiftYear, shiftMonth_;
@@ -567,15 +752,46 @@ function getClosedDays() {
   return settings.closedDays || [2];
 }
 
+// 曜日別の営業時間を取得
+function getDayHours(dayOfWeek) {
+  const settings = loadData('salonShiftSettings', {});
+  const weeklyHours = settings.weeklyHours || {};
+  const daySettings = weeklyHours[dayOfWeek];
+  if (daySettings) return daySettings;
+  // フォールバック: 旧形式の共通設定
+  return {
+    openTime: settings.openTime || '10:00',
+    closeTime: settings.closeTime || '20:00',
+    lastReception: settings.lastReception || '19:00'
+  };
+}
+
 function saveShiftSettings() {
-  const checks = document.querySelectorAll('#closedDays input[type=checkbox]');
+  const rows = document.querySelectorAll('.wh-row');
   const closedDays = [];
-  checks.forEach(c => { if (c.checked) closedDays.push(parseInt(c.value)); });
+  const weeklyHours = {};
+
+  rows.forEach(row => {
+    const day = parseInt(row.dataset.day);
+    const isClosed = row.querySelector('.wh-closed')?.checked || false;
+    const openTime = row.querySelector('.wh-open')?.value || '10:00';
+    const closeTime = row.querySelector('.wh-close')?.value || '20:00';
+    const lastReception = row.querySelector('.wh-last')?.value || '19:00';
+
+    if (isClosed) closedDays.push(day);
+
+    weeklyHours[day] = { openTime, closeTime, lastReception };
+  });
+
+  // 旧形式との互換性のため、月曜のデータをデフォルトとして保存
+  const defaultDay = weeklyHours[1] || { openTime: '10:00', closeTime: '20:00', lastReception: '19:00' };
+
   const settings = {
-    openTime: document.getElementById('editOpenTime')?.value || '10:00',
-    closeTime: document.getElementById('editCloseTime')?.value || '20:00',
-    lastReception: document.getElementById('editLastReception')?.value || '19:00',
-    closedDays
+    openTime: defaultDay.openTime,
+    closeTime: defaultDay.closeTime,
+    lastReception: defaultDay.lastReception,
+    closedDays,
+    weeklyHours
   };
   saveData('salonShiftSettings', settings);
   syncShiftsToServer();
@@ -597,12 +813,34 @@ function syncShiftsToServer() {
 }
 
 function loadShiftSettings() {
-  const s = loadData('salonShiftSettings', { openTime:'10:00', closeTime:'20:00', lastReception:'19:00', closedDays:[2] });
-  const ot = document.getElementById('editOpenTime'); if (ot) ot.value = s.openTime || '10:00';
-  const ct = document.getElementById('editCloseTime'); if (ct) ct.value = s.closeTime || '20:00';
-  const lr = document.getElementById('editLastReception'); if (lr) lr.value = s.lastReception || '19:00';
-  const checks = document.querySelectorAll('#closedDays input[type=checkbox]');
-  checks.forEach(c => { c.checked = (s.closedDays || [2]).includes(parseInt(c.value)); });
+  const s = loadData('salonShiftSettings', {
+    openTime: '10:00', closeTime: '20:00', lastReception: '19:00', closedDays: [2]
+  });
+  const weeklyHours = s.weeklyHours || {};
+  const closedDays = s.closedDays || [2];
+  const defaultOpen = s.openTime || '10:00';
+  const defaultClose = s.closeTime || '20:00';
+  const defaultLast = s.lastReception || '19:00';
+
+  const rows = document.querySelectorAll('.wh-row');
+  rows.forEach(row => {
+    const day = parseInt(row.dataset.day);
+    const dayData = weeklyHours[day];
+    const isClosed = closedDays.includes(day);
+
+    row.querySelector('.wh-open').value = dayData?.openTime || defaultOpen;
+    row.querySelector('.wh-close').value = dayData?.closeTime || defaultClose;
+    row.querySelector('.wh-last').value = dayData?.lastReception || defaultLast;
+    row.querySelector('.wh-closed').checked = isClosed;
+
+    // 定休日の行をグレーアウト
+    row.classList.toggle('wh-closed-row', isClosed);
+
+    // 定休日チェックボックスのイベント
+    row.querySelector('.wh-closed').addEventListener('change', function() {
+      row.classList.toggle('wh-closed-row', this.checked);
+    });
+  });
 }
 
 function renderShiftCalendar() {
@@ -1854,9 +2092,11 @@ function renderTimelineSlots(container, dateStr, bookings, isToday) {
         contentHTML = '<span class="tl-empty-text">—</span>';
       }
 
+      const clickHandler = booking ? '' : `onclick="openManualBookingModal('${dateStr}', '${timeStr}')" style="cursor: pointer;"`;
+
       slotsHTML += `
         ${nowLine}
-        <div class="tl-slot${hourClass}${bookedClass}">
+        <div class="tl-slot${hourClass}${bookedClass}" ${clickHandler}>
           <div class="tl-slot-time${timeClass}">${timeStr}</div>
           <div class="tl-slot-line"></div>
           <div class="tl-slot-content">${contentHTML}</div>

@@ -2629,3 +2629,120 @@ img { max-width:100%; display:block; }
   }
 }
 
+/* ==========================================
+   曜日別営業時間テーブル
+   ========================================== */
+.weekly-hours-table {
+  border: 1px solid #e8e0d8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wh-header,
+.wh-row {
+  display: flex;
+  align-items: center;
+}
+
+.wh-header {
+  background: #faf8f5;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #555;
+  border-bottom: 1px solid #e8e0d8;
+  padding: 8px 0;
+}
+
+.wh-row {
+  border-bottom: 1px solid #f0ebe6;
+  padding: 6px 0;
+  transition: background 0.15s;
+}
+
+.wh-row:last-child {
+  border-bottom: none;
+}
+
+.wh-row:hover {
+  background: #faf8f5;
+}
+
+.wh-row.wh-closed-row {
+  opacity: 0.45;
+  background: #f9f9f9;
+}
+
+.wh-day-col {
+  width: 60px;
+  min-width: 60px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+}
+
+.wh-time-col {
+  flex: 1;
+  padding: 0 6px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.wh-time-col input[type="time"] {
+  width: 100%;
+  padding: 6px 4px;
+  border: 1px solid #e0d8ce;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  text-align: center;
+  background: #fff;
+  color: #1a1a1a;
+  transition: border-color 0.2s;
+}
+
+.wh-time-col input[type="time"]:focus {
+  border-color: var(--accent, #c19a6b);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(193, 154, 107, 0.12);
+}
+
+.wh-check-col {
+  width: 60px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.wh-check-col input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent, #c19a6b);
+}
+
+@media (max-width: 768px) {
+  .wh-header {
+    font-size: 0.7rem;
+    padding: 6px 0;
+  }
+
+  .wh-day-col {
+    width: 38px;
+    min-width: 38px;
+    font-size: 0.78rem;
+  }
+
+  .wh-time-col {
+    padding: 0 2px;
+  }
+
+  .wh-time-col input[type="time"] {
+    padding: 4px 2px;
+    font-size: 0.75rem;
+  }
+
+  .wh-check-col {
+    width: 40px;
+    min-width: 40px;
+  }
+}
+

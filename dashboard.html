@@ -188,7 +188,13 @@
 
       <!-- テーブルビュー -->
       <div class="card" style="margin-top: 20px;">
-        <div class="card-header"><h3>予約一覧</h3></div>
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0;">予約一覧</h3>
+          <button id="addBookingBtn" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:100px; font-weight:600; cursor:pointer; background:#1a1a1a; color:#fff; border:none; font-size:0.85rem; transition:0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新規追加
+          </button>
+        </div>
         <div class="section-toolbar">
           <div class="search-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -209,6 +215,92 @@
             <thead><tr><th>予約ID</th><th>お客様</th><th>メニュー</th><th>日時</th><th>料金</th><th>ステータス</th><th>操作</th></tr></thead>
             <tbody id="bookingsTableBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- 手動予約追加モーダル -->
+      <div class="modal-overlay" id="addBookingModal">
+        <div class="modal-card" style="max-width:520px;">
+          <div class="modal-header">
+            <h3>新規予約を追加</h3>
+            <button class="modal-close" id="addBookingModalClose">×</button>
+          </div>
+          <form id="addBookingForm" class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>お客様名 <span style="color:#e74c3c;">*</span></label>
+                <input type="text" id="newBookingClient" required placeholder="田中 花子">
+              </div>
+              <div class="form-group">
+                <label>電話番号</label>
+                <input type="tel" id="newBookingPhone" placeholder="090-1234-5678">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>メールアドレス</label>
+              <input type="email" id="newBookingEmail" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+              <label>メニュー <span style="color:#e74c3c;">*</span></label>
+              <select id="newBookingMenu" class="filter-select" required>
+                <option value="">メニューを選択...</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>日付 <span style="color:#e74c3c;">*</span></label>
+                <input type="date" id="newBookingDate" required>
+              </div>
+              <div class="form-group">
+                <label>時間 <span style="color:#e74c3c;">*</span></label>
+                <select id="newBookingTime" class="filter-select" required>
+                  <option value="">時間を選択...</option>
+                  <option value="10:00">10:00</option>
+                  <option value="10:30">10:30</option>
+                  <option value="11:00">11:00</option>
+                  <option value="11:30">11:30</option>
+                  <option value="12:00">12:00</option>
+                  <option value="12:30">12:30</option>
+                  <option value="13:00">13:00</option>
+                  <option value="13:30">13:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="14:30">14:30</option>
+                  <option value="15:00">15:00</option>
+                  <option value="15:30">15:30</option>
+                  <option value="16:00">16:00</option>
+                  <option value="16:30">16:30</option>
+                  <option value="17:00">17:00</option>
+                  <option value="17:30">17:30</option>
+                  <option value="18:00">18:00</option>
+                  <option value="18:30">18:30</option>
+                  <option value="19:00">19:00</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>料金 ($)</label>
+                <input type="number" id="newBookingPrice" min="0" placeholder="自動入力されます">
+                <p class="form-hint" style="font-size:11px;color:var(--text-secondary,#888);margin-top:4px;">メニュー選択で自動入力。手動変更も可能</p>
+              </div>
+              <div class="form-group">
+                <label>ステータス</label>
+                <select id="newBookingStatus" class="filter-select">
+                  <option value="confirmed">確定</option>
+                  <option value="pending">保留中</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>メモ</label>
+              <input type="text" id="newBookingNote" placeholder="備考があれば入力">
+            </div>
+            <p class="form-hint" id="addBookingError" style="color:#e74c3c;display:none;"></p>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" id="addBookingCancelBtn">キャンセル</button>
+              <button type="submit" class="btn-save">予約を追加</button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
@@ -232,33 +324,23 @@
         <div class="shift-grid" id="shiftGrid"></div>
       </div>
       <div class="card mgmt-card" style="margin-top:20px;">
-        <div class="card-header"><h3>営業時間設定</h3></div>
+        <div class="card-header"><h3>営業時間設定（曜日別）</h3></div>
         <form id="hoursForm" class="site-info-form">
-          <div class="form-row form-row-3">
-            <div class="form-group">
-              <label>開店時間</label>
-              <input type="time" id="editOpenTime" value="10:00">
+          <div class="weekly-hours-table">
+            <div class="wh-header">
+              <div class="wh-day-col">曜日</div>
+              <div class="wh-time-col">開店</div>
+              <div class="wh-time-col">閉店</div>
+              <div class="wh-time-col">最終受付</div>
+              <div class="wh-check-col">定休日</div>
             </div>
-            <div class="form-group">
-              <label>閉店時間</label>
-              <input type="time" id="editCloseTime" value="20:00">
-            </div>
-            <div class="form-group">
-              <label>最終受付</label>
-              <input type="time" id="editLastReception" value="19:00">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>定休日</label>
-            <div class="day-checkboxes" id="closedDays">
-              <label class="day-check"><input type="checkbox" value="0"><span>日</span></label>
-              <label class="day-check"><input type="checkbox" value="1"><span>月</span></label>
-              <label class="day-check"><input type="checkbox" value="2" checked><span>火</span></label>
-              <label class="day-check"><input type="checkbox" value="3"><span>水</span></label>
-              <label class="day-check"><input type="checkbox" value="4"><span>木</span></label>
-              <label class="day-check"><input type="checkbox" value="5"><span>金</span></label>
-              <label class="day-check"><input type="checkbox" value="6"><span>土</span></label>
-            </div>
+            <div class="wh-row" data-day="1"><div class="wh-day-col">月</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
+            <div class="wh-row" data-day="2"><div class="wh-day-col">火</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed" checked></div></div>
+            <div class="wh-row" data-day="3"><div class="wh-day-col">水</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
+            <div class="wh-row" data-day="4"><div class="wh-day-col">木</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
+            <div class="wh-row" data-day="5"><div class="wh-day-col">金</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
+            <div class="wh-row" data-day="6"><div class="wh-day-col">土</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
+            <div class="wh-row" data-day="0"><div class="wh-day-col">日</div><div class="wh-time-col"><input type="time" class="wh-open" value="10:00"></div><div class="wh-time-col"><input type="time" class="wh-close" value="20:00"></div><div class="wh-time-col"><input type="time" class="wh-last" value="19:00"></div><div class="wh-check-col"><input type="checkbox" class="wh-closed"></div></div>
           </div>
           <div class="modal-actions" style="padding-top:12px;">
             <button type="submit" class="btn-save">営業時間を保存</button>
