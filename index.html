@@ -112,16 +112,16 @@
       <p class="section-subtitle animate-in" data-i18n="booking_subtitle">Book in 3 easy steps. Choose your preferred service and date.</p>
 
       <div class="booking-container">
-        <!-- Progress Steps -->
+        <!-- Progress Steps (Hot Pepper style: Menu → DateTime → Info) -->
         <div class="progress-bar animate-in">
           <div class="progress-step active" data-step="1">
             <div class="step-circle">1</div>
-            <span data-i18n="step1_label">Date & Time</span>
+            <span data-i18n="step1_label">Select Service</span>
           </div>
           <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
           <div class="progress-step" data-step="2">
             <div class="step-circle">2</div>
-            <span data-i18n="step2_label">Select Service</span>
+            <span data-i18n="step2_label">Date & Time</span>
           </div>
           <div class="progress-line"><div class="progress-fill"></div></div>
           <div class="progress-step" data-step="3">
@@ -130,9 +130,20 @@
           </div>
         </div>
 
-        <!-- Step 1: Date & Time -->
+        <!-- Step 1: Menu Selection (Hot Pepper style - menu first) -->
         <div class="booking-panel active" id="bookingStep1">
-          <h3 class="panel-heading" data-i18n="panel1_title">Choose date & time</h3>
+          <h3 class="panel-heading" data-i18n="panel1_title">Select a service</h3>
+          <div class="booking-menu-list" id="bookingMenuList">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">Next →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Date & Time -->
+        <div class="booking-panel" id="bookingStep2">
+          <h3 class="panel-heading" data-i18n="panel2_title">Choose date & time</h3>
           <div class="calendar-card">
             <div class="calendar-nav">
               <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>
@@ -147,17 +158,6 @@
           <div class="time-slots-area" id="timeSlotsContainer" style="display:none;">
             <h4 class="time-heading" data-i18n="time_select">Select a time</h4>
             <div class="time-slots-grid" id="timeSlots"></div>
-          </div>
-          <div class="panel-actions">
-            <button class="btn btn-accent btn-lg" id="toStep2" disabled data-i18n="btn_next">Next →</button>
-          </div>
-        </div>
-
-        <!-- Step 2: Menu Selection -->
-        <div class="booking-panel" id="bookingStep2">
-          <h3 class="panel-heading" data-i18n="panel2_title">Select a service</h3>
-          <div class="booking-menu-list" id="bookingMenuList">
-            <!-- Rendered by JS -->
           </div>
           <div class="panel-actions panel-actions-split">
             <button class="btn btn-outline-subtle" id="backToStep1" data-i18n="btn_back">← Back</button>
@@ -214,14 +214,15 @@
     </div>
   </section>
 
-  <!-- ==================== Confirmation Modal ==================== -->
+  <!-- ==================== Confirmation Modal (予約完了) ==================== -->
   <div class="modal-overlay" id="confirmModal">
-    <div class="modal-card">
+    <div class="modal-card booking-complete-card">
       <div class="modal-check">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
+      <div class="booking-complete-badge" id="bookingCompleteBadge">予約完了</div>
       <h3 class="modal-heading" data-i18n="modal_title">Thank you for your booking</h3>
-      <p class="modal-body" id="modalText"></p>
+      <div class="booking-complete-details" id="modalText"></div>
       <button class="btn btn-accent btn-lg btn-full" id="modalClose" data-i18n="modal_close">Close</button>
     </div>
   </div>

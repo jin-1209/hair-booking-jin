@@ -2036,8 +2036,32 @@ function fetchTimelineFromServer(dateStr) {
 
 function renderTimelineSlots(container, dateStr, bookings, isToday) {
   const statusLabels = { confirmed: '確定', pending: '保留中', completed: '完了', cancelled: 'キャンセル' };
-  const startHour = 10;
-  const endHour = 20;
+
+  // シフト設定から営業時間を動的に取得
+  const dateParts = dateStr.split('-').map(Number);
+  const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+  const dayOfWeek = dateObj.getDay();
+
+  // 日別の個別設定を優先チェック
+  const individualShifts = loadData('salonShifts', {});
+  const dayShift = individualShifts[dateStr];
+
+  let dayOpenTime = '10:00';
+  let dayCloseTime = '20:00';
+
+  if (dayShift && !dayShift.isOff) {
+    // 日別設定がある場合
+    if (dayShift.openTime) dayOpenTime = dayShift.openTime;
+    if (dayShift.closeTime) dayCloseTime = dayShift.closeTime;
+  } else if (!dayShift) {
+    // 曜日別設定を取得
+    const dayHours = getDayHours(dayOfWeek);
+    dayOpenTime = dayHours.openTime || '10:00';
+    dayCloseTime = dayHours.closeTime || '20:00';
+  }
+
+  const startHour = parseInt(dayOpenTime.split(':')[0]);
+  const endHour = parseInt(dayCloseTime.split(':')[0]);
 
   // サマリー
   const totalBookings = bookings.length;

@@ -121,15 +121,16 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: 'ご予約',
     booking_subtitle: '3ステップで簡単予約。お好みのメニューと日時をお選びください。',
-    step1_label: '日時選択',
-    step2_label: 'メニュー選択',
+    step1_label: 'メニュー選択',
+    step2_label: '日時選択',
     step3_label: 'お客様情報',
-    panel1_title: '日時をお選びください',
-    panel2_title: 'メニューをお選びください',
+    panel1_title: 'メニューをお選びください',
+    panel2_title: '日時をお選びください',
     panel3_title: 'お客様情報をご入力ください',
     btn_next: '次へ進む →',
     btn_back: '← 戻る',
     btn_submit: '予約を確定する ✓',
+    booking_complete: '予約完了',
     time_select: '時間帯を選択',
     label_name: 'お名前 <span class="req">*</span>',
     label_phone: '電話番号',
@@ -233,15 +234,16 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: 'Booking',
     booking_subtitle: 'Book in 3 easy steps. Choose your preferred service and date.',
-    step1_label: 'Date & Time',
-    step2_label: 'Select Service',
+    step1_label: 'Select Service',
+    step2_label: 'Date & Time',
     step3_label: 'Your Info',
-    panel1_title: 'Choose date & time',
-    panel2_title: 'Select a service',
+    panel1_title: 'Select a service',
+    panel2_title: 'Choose date & time',
     panel3_title: 'Enter your details',
     btn_next: 'Next →',
     btn_back: '← Back',
     btn_submit: 'Confirm Booking ✓',
+    booking_complete: 'Booking Complete',
     time_select: 'Select a time',
     label_name: 'Name <span class="req">*</span>',
     label_phone: 'Phone Number',
@@ -345,15 +347,16 @@ const TRANSLATIONS = {
     booking_badge: 'Booking',
     booking_title: '预约',
     booking_subtitle: '3步轻松预约。选择您喜欢的服务和日期。',
-    step1_label: '选择日期',
-    step2_label: '选择项目',
-    step3_label: '客户信息',
-    panel1_title: '请选择日期和时间',
-    panel2_title: '请选择服务项目',
-    panel3_title: '请输入客户信息',
+    step1_label: '选择服务',
+    step2_label: '选择日期和时间',
+    step3_label: '您的信息',
+    panel1_title: '选择服务项目',
+    panel2_title: '选择日期和时间',
+    panel3_title: '请输入您的信息',
     btn_next: '下一步 →',
     btn_back: '← 返回',
     btn_submit: '确认预约 ✓',
+    booking_complete: '预约完成',
     time_select: '选择时间段',
     label_name: '姓名 <span class="req">*</span>',
     label_phone: '电话号码',
@@ -1023,7 +1026,7 @@ function renderMenuSection() {
 }
 
 // ==========================================
-// Booking System
+// Booking System (Hot Pepper style: Menu → DateTime → Info)
 // ==========================================
 function initBooking() {
   renderBookingMenuList();
@@ -1054,7 +1057,10 @@ function renderBookingMenuList() {
       <div class="radio-dot"></div>
       <div class="item-info">
         <div class="item-name">${menuText(item, 'name')}</div>
-        <div class="item-detail">${menuText(item, 'time')}</div>
+        <div class="item-desc">${menuText(item, 'desc')}</div>
+        <div class="item-meta">
+          <span class="item-time">⏱ ${menuText(item, 'time')}</span>
+        </div>
       </div>
       <div class="item-price">${item.price}</div>
     `;
@@ -1067,7 +1073,7 @@ function selectBookingMenu(item, el) {
   document.querySelectorAll('.booking-menu-item').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
   state.selectedMenu = item;
-  document.getElementById('toStep3').disabled = false;
+  document.getElementById('toStep2').disabled = false;
 }
 
 function goToStep(step) {
@@ -1087,11 +1093,22 @@ function goToStep(step) {
   document.querySelectorAll('.booking-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`bookingStep${step}`).classList.add('active');
 
-  if (step === 2) {
+  // Step 1: メニュー選択
+  if (step === 1) {
     renderBookingMenuList();
-    document.getElementById('toStep3').disabled = !state.selectedMenu;
+    document.getElementById('toStep2').disabled = !state.selectedMenu;
   }
 
+  // Step 2: 日時選択
+  if (step === 2) {
+    document.getElementById('toStep3').disabled = !state.selectedTime;
+    // メニューの所要時間に応じてタイムスロットを再描画
+    if (state.selectedDate) {
+      renderTimeSlots();
+    }
+  }
+
+  // Step 3: お客様情報
   if (step === 3) {
     updateBookingSummary();
   }
@@ -1269,15 +1286,38 @@ function handleSubmit(e) {
     price: menuPrice
   });
 
+  // 予約完了バッジを言語に合わせて更新
+  const completeBadge = document.getElementById('bookingCompleteBadge');
+  if (completeBadge) {
+    completeBadge.textContent = t('booking_complete') || '予約完了';
+  }
+
   const modalText = document.getElementById('modalText');
   modalText.innerHTML = `
-    <strong>${name}</strong><br><br>
-    📋 ${menuName}<br>
-    📅 ${dateStr} ${state.selectedTime}<br>
-    💰 ${menuPrice}<br><br>
-    ${t('modal_confirm_msg')}<br>
-    ${phone ? '📞 ' + phone + '<br>' : ''}
-    ${email ? '📧 ' + email : ''}
+    <div class="complete-detail-row">
+      <span class="complete-detail-label">📋 ${t('summary_menu')}</span>
+      <span class="complete-detail-value">${menuName}</span>
+    </div>
+    <div class="complete-detail-row">
+      <span class="complete-detail-label">📅 ${t('summary_date')}</span>
+      <span class="complete-detail-value">${dateStr}</span>
+    </div>
+    <div class="complete-detail-row">
+      <span class="complete-detail-label">⏰ ${t('summary_time')}</span>
+      <span class="complete-detail-value">${state.selectedTime}</span>
+    </div>
+    <div class="complete-detail-row">
+      <span class="complete-detail-label">💰 ${t('summary_price')}</span>
+      <span class="complete-detail-value accent">${menuPrice}</span>
+    </div>
+    <div class="complete-detail-divider"></div>
+    <div class="complete-detail-row">
+      <span class="complete-detail-label">👤 ${t('label_name').replace(/<[^>]*>/g, '')}</span>
+      <span class="complete-detail-value">${name}</span>
+    </div>
+    ${phone ? `<div class="complete-detail-row"><span class="complete-detail-label">📞 ${t('label_phone')}</span><span class="complete-detail-value">${phone}</span></div>` : ''}
+    ${email ? `<div class="complete-detail-row"><span class="complete-detail-label">📧 ${t('label_email')}</span><span class="complete-detail-value">${email}</span></div>` : ''}
+    <p class="complete-confirm-msg">${t('modal_confirm_msg')}</p>
   `;
 
   document.getElementById('confirmModal').classList.add('active');
@@ -1593,7 +1633,7 @@ function fetchBookingsForDate(dateStr) {
 
 function selectTime(time, e) {
   state.selectedTime = time;
-  document.getElementById('toStep2').disabled = false;
+  document.getElementById('toStep3').disabled = false;
 
   document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
   e.target.classList.add('selected');
