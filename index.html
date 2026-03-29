@@ -144,6 +144,13 @@
         <!-- Step 2: Date & Time -->
         <div class="booking-panel" id="bookingStep2">
           <h3 class="panel-heading" data-i18n="panel2_title">Choose date & time</h3>
+          <!-- 施術時間セレクター（メニューに時間幅がある場合表示） -->
+          <div class="duration-selector-area" id="durationSelectorArea" style="display:none;">
+            <div class="duration-selector-label" id="durationLabel">施術時間を選択</div>
+            <div class="duration-selector-options" id="durationOptions">
+              <!-- JS で生成 -->
+            </div>
+          </div>
           <div class="calendar-card">
             <div class="calendar-nav">
               <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>

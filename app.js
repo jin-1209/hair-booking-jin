@@ -131,6 +131,8 @@ const TRANSLATIONS = {
     btn_back: '← 戻る',
     btn_submit: '予約を確定する ✓',
     booking_complete: '予約完了',
+    duration_select: '施術時間を選択してください',
+    duration_unit: '分',
     time_select: '時間帯を選択',
     label_name: 'お名前 <span class="req">*</span>',
     label_phone: '電話番号',
@@ -244,6 +246,8 @@ const TRANSLATIONS = {
     btn_back: '← Back',
     btn_submit: 'Confirm Booking ✓',
     booking_complete: 'Booking Complete',
+    duration_select: 'Select treatment duration',
+    duration_unit: 'min',
     time_select: 'Select a time',
     label_name: 'Name <span class="req">*</span>',
     label_phone: 'Phone Number',
@@ -357,6 +361,8 @@ const TRANSLATIONS = {
     btn_back: '← 返回',
     btn_submit: '确认预约 ✓',
     booking_complete: '预约完成',
+    duration_select: '选择施术时间',
+    duration_unit: '分钟',
     time_select: '选择时间段',
     label_name: '姓名 <span class="req">*</span>',
     label_phone: '电话号码',
@@ -584,6 +590,7 @@ const state = {
   selectedMenu: null,
   selectedDate: null,
   selectedTime: null,
+  selectedDuration: null, // 選択された施術時間（分）
   calendarYear: new Date().getFullYear(),
   calendarMonth: new Date().getMonth(),
   lang: 'en'
@@ -1101,6 +1108,7 @@ function goToStep(step) {
 
   // Step 2: 日時選択
   if (step === 2) {
+    renderDurationSelector();
     document.getElementById('toStep3').disabled = !state.selectedTime;
     // メニューの所要時間に応じてタイムスロットを再描画
     if (state.selectedDate) {
@@ -1116,6 +1124,84 @@ function goToStep(step) {
   document.getElementById('booking').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ==========================================
+// Duration Selector (施術時間セレクター)
+// ==========================================
+function getMenuDurationRange(menu) {
+  if (!menu) return { min: 60, max: 60 };
+  const timeNum = menu.timeNum || 60;
+  // timeMaxが明示的に設定されている場合はそれを使用
+  if (menu.timeMax && menu.timeMax > timeNum) {
+    return { min: timeNum, max: menu.timeMax };
+  }
+  // time テキストから範囲を解析 (例: "約60〜90分", "~60-90 min")
+  const timeJa = typeof menu.time === 'string' ? menu.time : (menu.time?.ja || '');
+  const rangeMatch = timeJa.match(/(\d+)[〜~\-](\d+)/);
+  if (rangeMatch) {
+    const min = parseInt(rangeMatch[1]);
+    const max = parseInt(rangeMatch[2]);
+    if (max > min) return { min, max };
+  }
+  return { min: timeNum, max: timeNum };
+}
+
+function renderDurationSelector() {
+  const area = document.getElementById('durationSelectorArea');
+  const options = document.getElementById('durationOptions');
+  const label = document.getElementById('durationLabel');
+  if (!area || !options) return;
+
+  const menu = state.selectedMenu;
+  if (!menu) { area.style.display = 'none'; return; }
+
+  const range = getMenuDurationRange(menu);
+
+  // 時間枠が固定の場合はセレクターを非表示
+  if (range.min === range.max) {
+    state.selectedDuration = range.min;
+    area.style.display = 'none';
+    return;
+  }
+
+  // 施術時間の選択肢を30分刻みで生成
+  area.style.display = 'block';
+  label.textContent = t('duration_select');
+  options.innerHTML = '';
+
+  const durationUnit = t('duration_unit');
+  for (let d = range.min; d <= range.max; d += 30) {
+    const btn = document.createElement('button');
+    btn.className = 'duration-option';
+    btn.textContent = `${d}${durationUnit}`;
+    btn.dataset.duration = d;
+
+    if (state.selectedDuration === d) {
+      btn.classList.add('selected');
+    }
+
+    btn.addEventListener('click', () => {
+      state.selectedDuration = d;
+      state.selectedTime = null; // 時間枠が変わるので時間選択をリセット
+      document.getElementById('toStep3').disabled = true;
+      document.querySelectorAll('.duration-option').forEach(o => o.classList.remove('selected'));
+      btn.classList.add('selected');
+      // タイムスロットを再描画
+      if (state.selectedDate) {
+        renderTimeSlots();
+      }
+    });
+
+    options.appendChild(btn);
+  }
+
+  // デフォルトで最小値を選択
+  if (!state.selectedDuration || state.selectedDuration < range.min || state.selectedDuration > range.max) {
+    state.selectedDuration = range.min;
+    const firstBtn = options.querySelector('.duration-option');
+    if (firstBtn) firstBtn.classList.add('selected');
+  }
+}
+
 function updateBookingSummary() {
   const summary = document.getElementById('bookingSummary');
   let dateStr = t('not_selected');
@@ -1129,12 +1215,13 @@ function updateBookingSummary() {
   }
 
   const menuName = state.selectedMenu ? menuText(state.selectedMenu, 'name') : t('not_selected');
+  const durationText = state.selectedDuration ? `${state.selectedDuration}${t('duration_unit')}` : '';
 
   summary.innerHTML = `
     <div class="summary-label">${t('summary_title')}</div>
     <div class="summary-row">
       <span class="s-label">${t('summary_menu')}</span>
-      <span class="s-value">${menuName}</span>
+      <span class="s-value">${menuName}${durationText ? ' (' + durationText + ')' : ''}</span>
     </div>
     <div class="summary-row">
       <span class="s-label">${t('summary_date')}</span>
@@ -1192,7 +1279,7 @@ function handleSubmit(e) {
   const menuPriceNum = state.selectedMenu.priceNum || 0;
 
   // Save booking to shared salonBookings (for dashboard integration)
-  const menuDuration = state.selectedMenu ? (state.selectedMenu.timeNum || 60) : 60;
+  const menuDuration = state.selectedDuration || state.selectedMenu?.timeNum || 60;
   const newBooking = {
     id: 'B' + Date.now(),
     client: name,
@@ -1293,10 +1380,11 @@ function handleSubmit(e) {
   }
 
   const modalText = document.getElementById('modalText');
+  const durationLabel = state.selectedDuration ? ` (${state.selectedDuration}${t('duration_unit')})` : '';
   modalText.innerHTML = `
     <div class="complete-detail-row">
       <span class="complete-detail-label">📋 ${t('summary_menu')}</span>
-      <span class="complete-detail-value">${menuName}</span>
+      <span class="complete-detail-value">${menuName}${durationLabel}</span>
     </div>
     <div class="complete-detail-row">
       <span class="complete-detail-label">📅 ${t('summary_date')}</span>
@@ -1504,9 +1592,9 @@ function renderCalendar() {
 function selectDate(date) {
   state.selectedDate = date;
   state.selectedTime = null;
+  document.getElementById('toStep3').disabled = true;
   renderCalendar();
   renderTimeSlots();
-  document.getElementById('toStep2').disabled = true;
 }
 
 function renderTimeSlots() {
@@ -1563,8 +1651,8 @@ function renderTimeSlots() {
   fetchBookingsForDate(dateStr).then(existingBookings => {
     slotsGrid.innerHTML = '';
     
-    // 選択中メニューの所要時間を取得（分）
-    const selectedDuration = state.selectedMenu ? (state.selectedMenu.timeNum || 60) : 60;
+    // 選択中の施術時間を取得（分）— セレクタで選んだ値を優先
+    const selectedDuration = state.selectedDuration || (state.selectedMenu ? (state.selectedMenu.timeNum || 60) : 60);
 
     // 今日の場合、現在時刻より前のスロットは無効
     const now = new Date();
@@ -1664,10 +1752,13 @@ function resetBooking() {
   state.selectedMenu = null;
   state.selectedDate = null;
   state.selectedTime = null;
+  state.selectedDuration = null;
 
   document.querySelectorAll('.booking-menu-item').forEach(i => i.classList.remove('selected'));
   document.getElementById('toStep2').disabled = true;
   document.getElementById('toStep3').disabled = true;
+  const durationArea = document.getElementById('durationSelectorArea');
+  if (durationArea) durationArea.style.display = 'none';
   document.getElementById('bookingForm').reset();
   document.getElementById('timeSlotsContainer').style.display = 'none';
 

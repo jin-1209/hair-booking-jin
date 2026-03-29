@@ -1731,8 +1731,11 @@ function saveMenuFromModal() {
   const displayPrice = '$' + priceStr;
   const timeInput = document.getElementById('editTime').value.trim();
   const timeStr = timeInput.replace(/分$/, '');
-  const tn = parseInt(timeStr.replace(/[〜~].*/,'')) || 0;
-  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:displayPrice, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${timeStr}分`,en:`~${timeStr} min`,zh:`约${timeStr}分钟`}, timeNum:tn };
+  const tn = parseInt(timeStr.replace(/[〜~\-].*/,'')) || 0;
+  // timeMaxを解析（例: "60〜90" → timeMax=90）
+  const rangeMatch = timeStr.match(/(\d+)[〜~\-](\d+)/);
+  const tMax = rangeMatch ? parseInt(rangeMatch[2]) : tn;
+  const mi = { id: id||'m-'+Date.now(), name:{ja:document.getElementById('editNameJa').value.trim(),en:document.getElementById('editNameEn').value.trim(),zh:document.getElementById('editNameZh').value.trim()}, price:displayPrice, priceNum:pn, desc:{ja:document.getElementById('editDescJa').value.trim(),en:document.getElementById('editDescEn').value.trim(),zh:document.getElementById('editDescZh').value.trim()}, time:{ja:`約${timeStr}分`,en:`~${timeStr} min`,zh:`约${timeStr}分钟`}, timeNum:tn, timeMax:tMax };
   const items = getManagedMenuItems(); const idx = items.findIndex(x => x.id === id);
   if (idx < 0 && items.length >= MAX_MENU_ITEMS) {
     showToast(`メニューは最大${MAX_MENU_ITEMS}件までです`); return;
